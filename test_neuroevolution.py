@@ -25,6 +25,7 @@ cur_fitness=fitness(robot)
 iterations=0
 
 #loop until we discover a solution to the maze
+#this is using simple hillclimbing algorithm (not neat)
 while not robot.solution():
 
  #create new mutant from current best

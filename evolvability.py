@@ -1,5 +1,6 @@
 import mazepy
 
+#a function to map a robot's behavior into a grid of niches
 def map_into_grid(robot,grid_sz):
  x=mazepy.feature_detector.endx(robot)
  y=mazepy.feature_detector.endy(robot)
@@ -7,6 +8,9 @@ def map_into_grid(robot,grid_sz):
  y_grid=int(x*(grid_sz-1))
  return (x_grid,y_grid)
 
+#function to calculate evolvability via PLoS paper metric
+#do many one-step mutants from initial individual, see how many
+#'unique' behaviors we get
 def calc_evolvability(robot,grid_sz,mutations):
  grids=set()
  for x in range(mutations):
