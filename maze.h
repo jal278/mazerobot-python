@@ -1,7 +1,7 @@
 
 #ifndef MAZE_H
 #define MAZE_H
-#define DIST_CONSIDER 20
+#define DIST_CONSIDER 30
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -312,9 +312,10 @@ public:
 #endif
 
         //define the radar sensors
-        radarAngles1.push_back(315.0);
-        radarAngles2.push_back(405.0);
+        radarAngles1.push_back(0.0);
+        radarAngles2.push_back(360.0);
 
+/*
         radarAngles1.push_back(45.0);
         radarAngles2.push_back(135.0);
 
@@ -323,6 +324,7 @@ public:
 
         radarAngles1.push_back(225.0);
         radarAngles2.push_back(315.0);
+*/
 
         for(int i=0; i<(int)rangeFinderAngles.size(); i++)
             rangeFinders.push_back(0.0);
@@ -342,8 +344,11 @@ public:
 class Environment
 {
 public:
+    double communication_input;
+    double communication_output;
     Environment(const Environment &e)
     {
+	communication_input=e.communication_input;
         steps=e.steps;
         hero.location = e.hero.location;
                 hero.start = e.hero.start;
@@ -395,6 +400,7 @@ public:
     //initialize environment from maze file
     Environment(const char* filename)
     {
+	communication_input=0.0;
         ifstream inpfile(filename);
         int num_lines;
         inpfile >> disable;
@@ -447,11 +453,11 @@ public:
             cout << "NAN Distance error..." << endl;
             return 500.0;
         }
-        if(dist<10.0  && !reachgoal) {
+        if(dist<DIST_CONSIDER  && !reachgoal) {
             reachgoal=1; //if within 5 units, success!
             //closest_to_poi=10000000;
         }
-        else if (!goalattract) reachgoal=0; //must we
+        //else if (!goalattract) reachgoal=0; //must we
         //remain close?
         if(dist<closest_to_target)
             closest_to_target=dist;
@@ -469,7 +475,7 @@ public:
         if(dist<closest_to_poi)
             closest_to_poi=dist;
 
-        if(dist<10.0) reachpoi=1; //if within 5 units, success!
+        if(dist<DIST_CONSIDER) reachpoi=1; //if within 5 units, success!
         return dist;
     }
     //create neural net inputs from sensors
@@ -516,7 +522,10 @@ public:
             distance=0.0;
         //inputs[i+j+k+1] = distance;
 
-        inputs[i+j+k+1] = reachgoal; //was reachpoi
+        //inputs[i+j+k+1] = reachgoal; //was reachpoi
+
+        inputs[i+j+k+1] = communication_input; //was reachpoi
+
         return;
     }
 
@@ -525,7 +534,7 @@ public:
     {
         if(isnan(o1) || isnan(o2))
             cout << "OUTPUT ISNAN" << endl;
-
+        communication_output=o3;
         //why apply accelerations?
         //hero.ang_vel+=(o1-0.5)*1.0;
         //hero.speed+=(o2-0.5)*1.0;
@@ -537,8 +546,8 @@ public:
         //if(o3>0.5)
         //  hero.collide=true;
         //IF YOU WANT velocity instead of accel
-        float new_ang_vel=(o1-0.5)*6.0;
-        float new_speed=(o2-0.5)*6.0;
+        float new_ang_vel=(o1-0.5)*3.0;
+        float new_speed=(o2-0.5)*3.0;
         float d_ang = new_ang_vel-hero.ang_vel;
         float d_speed= new_speed-hero.speed;
 
@@ -662,9 +671,9 @@ public:
     {
         //possible optimization for mc, move later, avoid sqrt
         double distance = h.location.distance(target);
-        distance = 1.0 - (distance/200.0);
-        if(distance<0.2)
-            distance=0.2;
+        distance = (distance/DIST_CONSIDER);
+
+
         bool compass=false; //if you want it to be compass instead of
         //target indicator
         if(compass) {
@@ -685,12 +694,13 @@ public:
         for(int i=0; i<(int)h.radarAngles1.size(); i++)
         {
             radar_arr[i]=0.0;
-
+            if(distance<=1.0)  {
             if(angle>=h.radarAngles1[i] && angle<h.radarAngles2[i])
                 radar_arr[i]=1.0; //distance;
 
             if(angle+360.0>=h.radarAngles1[i] && angle+360.0<h.radarAngles2[i])
                 radar_arr[i]=1.0;//distance;
+	    }
         }
     }
 

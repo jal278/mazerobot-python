@@ -24,9 +24,14 @@
 #define GENOME_SIZE_LIMIT 300
 
 //The current environment
+static bool debugflag=false;
 static Environment* env;
 static vector<Environment*> envList;
 static ofstream *logfile=NULL;
+
+void set_debug_flag(bool val) {
+ debugflag=val;
+}
 
 //for real-time plotting
 static vector<float> best_fits;
@@ -37,7 +42,7 @@ plot behavior_plot;
 
 using namespace std;
 
-enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free };
+enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free, novelty_outcome };
 static novelty_measure_type novelty_measure = novelty_sample;
 
 enum fitness_measure_type { fitness_uniform,fitness_goal, fitness_drift, fitness_std,fitness_rnd,fitness_spin,fitness_changegoal,fitness_collisions,fitness_reachone ,fitness_aoi,fitness_collgoal};
@@ -184,6 +189,8 @@ void set_nov_measure(string m)
         novelty_measure=novelty_accum;
     if (m=="sample_free")
         novelty_measure=novelty_sample_free;
+    if (m=="outcome")
+        novelty_measure=novelty_outcome;
     cout << "Novelty measure " << novelty_measure << endl;
 }
 
@@ -522,10 +529,15 @@ Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,c
     {
         pop=new Population(seed_name);//start_genome,NEAT::pop_size,0.0);
         if (evaluate_switch) {
+	    set_debug_flag(true);
             int dist=0;
             double evol=0.0;
-            evolvability(pop->organisms[0],"dummyfile",&dist,&evol,true);
-            cout << endl << dist << " " << evol << endl;
+            //evolvability(pop->organisms[0],"dummyfile",&dist,&evol,true);
+            pop->set_evaluator(&maze_novelty_map);
+            pop->evaluate_all();
+                  
+            //cout << endl << dist << " " << evol << endl;
+            cout << pop->organisms[0]->fitness << endl;
             return 0;
         }
 
@@ -795,7 +807,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         /*	data_record* newrec=new data_record();
         	newrec->indiv_number=indiv_counter;
         	//evaluate individual, get novelty point
-        	new_org->noveltypoint = maze_novelty_map(new_org,newrec);
+        	new_org->noveltypoint =         communication_output=o3        communication_output=o3;;maze_novelty_map(new_org,newrec);
         	new_org->noveltypoint->indiv_number = indiv_counter;
         	new_org->fitness=new_org->noveltypoint->fitness;
         */
@@ -937,7 +949,7 @@ double mazesimStep(Environment* newenv,Network *net,vector< vector<float> > &dc)
     net->load_sensors(inputs);
     net->activate();
     //use the net's outputs to change heading and velocity of navigator
-    newenv->interpret_outputs(net->outputs[0]->activation,net->outputs[1]->activation,0.0); //net->outputs[2]->activation);
+    newenv->interpret_outputs(net->outputs[0]->activation,net->outputs[1]->activation,net->outputs[2]->activation);
     //update the environment
     newenv->Update();
     newenv->distance_to_poi();
@@ -1009,6 +1021,13 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
             accum->add_point(loc);
         }
     }
+   
+   if(novelty_measure=novelty_outcome) {
+    data.push_back(newenv->reachgoal);
+    data.push_back(newenv->reachpoi);
+   }
+ 
+   the_env->communication_output=newenv->communication_output;
 
     if (extinction) {
         if (extinct(newenv->hero.location)) {
@@ -1030,7 +1049,15 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
 
     if (fitness_measure == fitness_goal)
     {
-        fitness=300.0 - newenv->distance_to_target(); //was 500 for MCNS
+        if(newenv->reachgoal) fitness=500.0f;
+        else if(newenv->reachpoi) fitness=250.0f;
+        else { 
+          fitness=0.1;
+           //fitness=300.0 - newenv->distance_to_target(); //was 500 for MCNS
+          //double fit2=300.0 - newenv->distance_to_poi();
+          
+        }
+
         if (fitness<0.1) fitness=0.1;
         //if (newenv->hero.collide)
         //	fitness+=50;
@@ -1164,7 +1191,6 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
 
     if (novelty_measure==novelty_accum)
         delete accum;
-
     dc.push_back(data);
 
     delete newenv;
@@ -1322,10 +1348,17 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
     }
 
     for (int x=0; x<envList.size(); x++)
-    {
+       {
+
+        if(x==0) envList[x]->communication_input=0.0;
+        else envList[x]->communication_input = envList[x-1]->communication_output;
 
         org->eliminate=false;
         fitness+=mazesim(org->net,gather,record,envList[x],org,new_item);
+  
+        if(debugflag)
+	cout << "ci" << envList[x]->communication_input << " " << "co" << envList[x]->communication_output << endl;
+        
         if (org->eliminate) {
             new_item->viable=false;
             org->eliminate=false;
@@ -1364,6 +1397,14 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
 
     for (int i=0; i<gather.size(); i++)
         new_item->data.push_back(gather[i]);
+
+
+  /*
+   for (int x=0;x<gather.size();x++) 
+   for(int y=0;y<gather[x].size();y++)
+    cout << gather[x][y];
+   cout <<endl;
+  */
 
     //set fitness (this is 'real' objective-based fitness, not novelty)
     new_item->fitness=fitness;

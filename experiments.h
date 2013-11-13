@@ -30,7 +30,7 @@ void mutate_genome(Genome* new_genome,bool traits=false);
 
 float contained_dist(float x,float y);
 bool contained(float x,float y);
-
+void set_debug_flag(bool val);
 void set_age_objective(bool ao);
 void set_evaluate(bool val);
 void set_extinction(bool _ext);
