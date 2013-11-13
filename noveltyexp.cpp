@@ -489,6 +489,9 @@ Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,c
 
     int id;
 
+    char logname[100];
+    sprintf(logname,"%s_log.txt",outputdir);
+    logfile=new ofstream(logname);
 
     //crgate new maze environment
     //env=new Environment(mazefile);
@@ -631,7 +634,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
     //Now create offspring one at a time, testing each offspring,
     // and replacing the worst with the new offspring if its better
     for
-    (offspring_count=0; offspring_count<NEAT::pop_size*1001; offspring_count++)
+    (offspring_count=0; offspring_count<NEAT::pop_size*2001; offspring_count++)
     {
 //fix compat_threshold, so no speciation...
 //      NEAT::compat_threshold = 1000000.0;
@@ -680,6 +683,10 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
                     b=(*curorg);
                 }
             }
+    if(logfile!=NULL) {
+        (*logfile) << offspring_count/NEAT::pop_size << " " << mx << " " << mx << endl; 
+      logfile->flush();
+    }
             cout << "GEN" << offspring_count/NEAT::pop_size << " " << tot << " " << mx <<  endl;
             char fn[100];
             sprintf(fn,"%sdist%d",output_dir,offspring_count/NEAT::pop_size);
@@ -1580,8 +1587,10 @@ int maze_success_processing(population_state* pstate) {
             (*curorg)->fitness = (*curorg)->noveltypoint->fitness;
     }
 
-    if(logfile!=NULL)
-        (*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl;
+    if(logfile!=NULL) {
+        (*logfile) << pstate->generation*NEAT::pop_size<< " " << best_fitness << " " << best_secondary << endl; 
+      logfile->flush();
+    }
 
     if (win && !firstflag)
     {
