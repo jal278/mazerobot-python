@@ -219,6 +219,7 @@ static void read_in_environments(const char* mazefile, vector<Environment*>& env
             break;
         cout << "Reading maze: " << filename << endl;
         Environment* new_env = new Environment(filename.c_str());
+        new_env->randomize();
         envLst.push_back(new_env);
     }
 

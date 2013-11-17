@@ -371,6 +371,11 @@ public:
         closest_to_target = e.closest_to_target;
     }
 
+    void randomize() {
+     hero.heading+= rand()%10 - 5;
+     hero.location.x+= rand()%10 - 5;
+     hero.location.y+= rand()%10 - 5;
+    }
     void get_range(float &minx,float &miny, float &maxx, float& maxy)
     {
         minx= 100000;
