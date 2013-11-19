@@ -45,18 +45,37 @@ END_EVENT_TABLE()
 mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &brainfile, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	envCounter=0;
 	CreateGUIControls();
 	fitness=0.0;
 	timestep=0;
-	newpop=new NEAT::Population(brainfile.mb_str());
-	net=(newpop->organisms[0]->net);
-	net->print_links_tofile("links.out");
-	Environment *env1=new Environment(mazefile.mb_str());
-	env1->goalattract=false;
-        env=mazesimIni(env1,net,dc);
+        newpop=NULL;
+        brainstring=brainfile;
+	//newpop=new NEAT::Population(brainfile.mb_str());
+	//net=(newpop->organisms[0]->net);
+	//net->print_links_tofile("links.out");
+
+        read_in_environments(mazefile.mb_str(), envList);
+
+        load_next_environment();
+	//Environment *env1=new Environment(mazefile.mb_str());
+	//env1->goalattract=false;
+        //env=mazesimIni(env1,net,dc);
+
 	timer = new wxTimer(this, 1);
-	timer->Start(50); //was 50
+	timer->Start(10); //was 50
 	humancontrol=false;
+}
+
+void mazeDlg::load_next_environment() {
+ delete newpop;
+ newpop=new NEAT::Population(brainstring.mb_str());
+ net=(newpop->organisms[0]->net);
+
+ if(envCounter==0) envList[0]->communication_input=0.0;
+ else envList[envCounter]->communication_input = env->communication_output;
+
+ env=mazesimIni(envList[envCounter],net,dc);
 }
 
 mazeDlg::~mazeDlg()
@@ -92,7 +111,7 @@ void mazeDlg::OnTimer(wxTimerEvent& event)
 	xc.push_back(env->hero.location.x);
 	yc.push_back(env->hero.location.y);
 	double fit=0.0;
-	if(!humancontrol) {
+	if(!humancontrol) {
 		fit=mazesimStep(env,net,dc);
         }
 	else
@@ -100,10 +119,19 @@ void mazeDlg::OnTimer(wxTimerEvent& event)
 	env->hero.collide=false;
 	
         //cout << env->hero.collisions << endl;
-	if(timestep<400) fitness+=fit;	
+	if(timestep<env->steps) {fitness+=fit;	
 	timestep++;
 	}
 
+        else {
+	 //if(envCounter<(envList.size()-1)) {
+		envCounter++;
+		envCounter=envCounter%(envList.size());
+		load_next_environment();
+		timestep=0;
+         // }
+	}
+   }
     Refresh();
 }
 void mazeDlg::OnPaint(wxPaintEvent& event)
@@ -122,15 +150,32 @@ void mazeDlg::OnPaint(wxPaintEvent& event)
  double inputs[30];
  env->generate_neural_inputs(inputs); 
 if(true)
- for(int i=0;i<11;i++)
+ for(int i=0;i<10;i++)
   {
+   dc.SetBrush(*wxBLACK_BRUSH);
+   dc.DrawCircle(i*30+20,500,(int)(10.0));
+
    if(inputs[i]>0.5)
    dc.SetBrush(*wxGREEN_BRUSH);
    else
    dc.SetBrush(*wxBLUE_BRUSH);
    dc.DrawCircle(i*30+20,500,(int)(inputs[i]*10.0));
   }
-  //draw walls
+
+ 
+ for(int i=0;i<3;i++)
+  {
+   dc.SetBrush(*wxBLACK_BRUSH);
+   dc.DrawCircle(i*30+20,550,10);
+   double val=net->outputs[i]->activation;
+   if(val>0.5)
+   dc.SetBrush(*wxGREEN_BRUSH);
+   else
+   dc.SetBrush(*wxBLUE_BRUSH);
+   dc.DrawCircle(i*30+20,550,(int)(val*10.0));
+  }
+ 
+ //draw walls
   for(int i=0;i<env->lines.size();i++)
   {
   wxCoord x1 = scale*env->lines[i]->a.x, y1=scale*env->lines[i]->a.y;
@@ -217,7 +262,7 @@ if(true)
  
 if(true)
  outstring.Printf(_T("Timestep: %d, Fitness: %f"), timestep, fitness);
- dc.DrawText(outstring,50,500);
+ dc.DrawText(outstring,50,600);
  
 
   

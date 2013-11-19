@@ -51,12 +51,14 @@ class mazeDlg : public wxDialog
 	int timestep;
 	bool humancontrol;
 	NEAT::Population* newpop;
+        wxString brainstring;
         wxTimer *timer;
+         void load_next_environment();
 		mazeDlg(wxWindow *parent, const wxString &mazefile=wxT("maze.txt"), const wxString &brainfile=wxT("mazebrain.dat"),wxWindowID id = 1, const wxString &title = wxT("maze"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = mazeDlg_STYLE);
 		virtual ~mazeDlg();
 		Environment *env;
-	
-	
+	 	vector<Environment*> envList;
+                int envCounter;	
 	private:
 		//Do not add custom control declarations between 
 		//GUI Control Declaration Start and GUI Control Declaration End.

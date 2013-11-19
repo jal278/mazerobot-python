@@ -207,7 +207,7 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
     return diff;
 }
 
-static void read_in_environments(const char* mazefile, vector<Environment*>& envLst)
+void read_in_environments(const char* mazefile, vector<Environment*>& envLst)
 {
     ifstream listfile(mazefile);
 
