@@ -1514,6 +1514,7 @@ Population *maze_generational(char* outputdir,const char* mazefile,int param,con
 
 void destroy_organism(Organism* curorg) {
     curorg->fitness = SNUM/1000.0;
+    if(curorg->noveltypoint!=NULL)
     curorg->noveltypoint->reset_behavior();
     curorg->destroy=true;
 }

@@ -222,7 +222,7 @@ public:
     {
         for(int x=0; x<data.size(); x++)
             for(int y=0; y<data[x].size(); y++)
-                data[x][y]=-50.0;
+                data[x][y]=0.0;
     }
 
     bool Serialize(ofstream& ofile)
