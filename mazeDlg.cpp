@@ -45,6 +45,7 @@ END_EVENT_TABLE()
 mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &brainfile, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	srand(time(NULL));
 	envCounter=0;
 	CreateGUIControls();
 	fitness=0.0;

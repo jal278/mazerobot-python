@@ -635,7 +635,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
     //Now create offspring one at a time, testing each offspring,
     // and replacing the worst with the new offspring if its better
     for
-    (offspring_count=0; offspring_count<NEAT::pop_size*2001; offspring_count++)
+    (offspring_count=0; offspring_count<NEAT::pop_size*1001; offspring_count++)
     {
 //fix compat_threshold, so no speciation...
 //      NEAT::compat_threshold = 1000000.0;
@@ -871,7 +871,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && (newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && new_org->noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
