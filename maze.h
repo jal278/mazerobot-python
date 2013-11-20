@@ -375,6 +375,8 @@ public:
      hero.heading+= rand()%10 - 5;
      hero.location.x+= rand()%10 - 5;
      hero.location.y+= rand()%10 - 5;
+     hero.start.x=hero.location.x;
+     hero.start.y=hero.location.y;
     }
     void get_range(float &minx,float &miny, float &maxx, float& maxy)
     {

@@ -18,7 +18,7 @@ bool mazeDlgApp::OnInit()
 if (!wxApp::OnInit())
         return false;
 cout << "INIT" << endl;
-	mazeDlg* dialog = new mazeDlg(NULL,files[0],files[1]);
+	mazeDlg* dialog = new mazeDlg(NULL,files[0],files[1],files[2]);
 	SetTopWindow(dialog);
 	dialog->Show(true);		
 return true;

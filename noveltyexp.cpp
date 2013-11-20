@@ -871,7 +871,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && new_org->noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && newrec->ToRec[5]!=-1) { //noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -1194,7 +1194,17 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
         record->ToRec[2]=newenv->hero.location.y;
         record->ToRec[3]+=newenv->reachgoal;
         record->ToRec[4]+=newenv->reachpoi;
-        record->ToRec[5]= (-newenv->hero.collisions);
+
+        if(record->ToRec[5]==1 && newenv->reachpoi)
+          record->ToRec[5]=-1;
+        
+        if(!newenv->reachpoi && !newenv->reachgoal)
+          record->ToRec[5]=-1;
+
+        if(record->ToRec[5]!=-1)
+         record->ToRec[5]=newenv->reachpoi;
+       
+        //record->ToRec[5]= (-newenv->hero.collisions);
     }
 
     if (novelty_measure==novelty_accum)
@@ -1362,11 +1372,13 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
         else envList[x]->communication_input = envList[x-1]->communication_output;
 
         org->eliminate=false;
-        fitness+=mazesim(org->net,gather,record,envList[x],org,new_item);
-  
-        if(debugflag)
-	cout << "ci" << envList[x]->communication_input << " " << "co" << envList[x]->communication_output << endl;
-        
+        int tfitness=mazesim(org->net,gather,record,envList[x],org,new_item);
+  	fitness+=tfitness;
+        if(debugflag) {
+	cout << "sx " << envList[x]->hero.start.x << " " << envList[x]->hero.start.y << endl;
+	cout << "tfit" << tfitness << " ci" << envList[x]->communication_input << " " << "co" << envList[x]->communication_output << endl;
+        }
+
         if (org->eliminate) {
             new_item->viable=false;
             org->eliminate=false;

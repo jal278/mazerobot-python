@@ -54,7 +54,7 @@ class mazeDlg : public wxDialog
         wxString brainstring;
         wxTimer *timer;
          void load_next_environment();
-		mazeDlg(wxWindow *parent, const wxString &mazefile=wxT("maze.txt"), const wxString &brainfile=wxT("mazebrain.dat"),wxWindowID id = 1, const wxString &title = wxT("maze"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = mazeDlg_STYLE);
+		mazeDlg(wxWindow *parent, const wxString &mazefile=wxT("maze.txt"), const wxString &brainfile=wxT("mazebrain.dat"),const wxString &seedFile=wxT("0"),wxWindowID id = 1, const wxString &title = wxT("maze"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = mazeDlg_STYLE);
 		virtual ~mazeDlg();
 		Environment *env;
 	 	vector<Environment*> envList;

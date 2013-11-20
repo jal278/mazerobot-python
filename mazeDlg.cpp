@@ -42,10 +42,17 @@ BEGIN_EVENT_TABLE(mazeDlg,wxDialog)
 END_EVENT_TABLE()
 ////Event Table End
 
-mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &brainfile, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &brainfile, const wxString &seedString,wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+        int seed = atoi(seedString.mb_str());
+        if (seed==-1) {
 	srand(time(NULL));
+        }
+	else {
+	cout <<"SEED" << seed << endl;
+	srand(seed);
+	}
 	envCounter=0;
 	CreateGUIControls();
 	fitness=0.0;
@@ -73,9 +80,16 @@ void mazeDlg::load_next_environment() {
  newpop=new NEAT::Population(brainstring.mb_str());
  net=(newpop->organisms[0]->net);
 
- if(envCounter==0) envList[0]->communication_input=0.0;
- else envList[envCounter]->communication_input = env->communication_output;
+ if(envCounter==0) { 
+    envList[0]->communication_input=0.0;
+ }
+ else {
+  envList[envCounter]->communication_input = env->communication_output;
+  cout << "sx " << env->hero.start.x << " " << env->hero.start.y << endl;
+  cout << "ci " << env->communication_input << " co: "<< env->communication_output << endl;
+ }
 
+ envList[envCounter]->goalattract=true;
  env=mazesimIni(envList[envCounter],net,dc);
 }
 
@@ -117,19 +131,20 @@ void mazeDlg::OnTimer(wxTimerEvent& event)
         }
 	else
 		env->Update();
-	env->hero.collide=false;
+	//env->hero.collide=false;
 	
         //cout << env->hero.collisions << endl;
-	if(timestep<env->steps) {fitness+=fit;	
-	timestep++;
+	if(timestep<(env->steps-1)) {
+         fitness+=fit;	
+	 timestep++;
 	}
 
         else {
 	 //if(envCounter<(envList.size()-1)) {
+		timestep=0;
 		envCounter++;
 		envCounter=envCounter%(envList.size());
 		load_next_environment();
-		timestep=0;
          // }
 	}
    }
