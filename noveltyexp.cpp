@@ -1488,7 +1488,7 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
     for (int i=0; i<gather.size(); i++)
         new_item->data.push_back(gather[i]);
 
-
+if (false)
    for (int x=0;x<gather.size();x++) 
    for(int y=0;y<gather[x].size();y++)
     cout << gather[x][y];
