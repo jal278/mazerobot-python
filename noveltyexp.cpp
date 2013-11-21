@@ -42,7 +42,7 @@ plot behavior_plot;
 
 using namespace std;
 
-enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free, novelty_outcome };
+enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free, novelty_outcome,novelty_prob };
 static novelty_measure_type novelty_measure = novelty_sample;
 
 enum fitness_measure_type { fitness_uniform,fitness_goal, fitness_drift, fitness_std,fitness_rnd,fitness_spin,fitness_changegoal,fitness_collisions,fitness_reachone ,fitness_aoi,fitness_collgoal};
@@ -189,6 +189,10 @@ void set_nov_measure(string m)
         novelty_measure=novelty_accum;
     if (m=="sample_free")
         novelty_measure=novelty_sample_free;
+    if (m=="prob") {
+	novelty_measure=novelty_prob;
+	cout <<"NOVELTYPROB" <<endl;
+    }
     if (m=="outcome")
         novelty_measure=novelty_outcome;
     cout << "Novelty measure " << novelty_measure << endl;
@@ -871,7 +875,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && newrec->ToRec[5]!=-1) { //noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -1030,7 +1034,7 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
         }
     }
    
-   if(novelty_measure=novelty_outcome) {
+   if(novelty_measure==novelty_outcome) {
     data.push_back(newenv->reachgoal);
     data.push_back(newenv->reachpoi);
    }
@@ -1363,17 +1367,67 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
         record->ToRec[0]=0;
         record->ToRec[3]=0;
         record->ToRec[4]=0;
+        record->ToRec[5]=0;
     }
+
+    float total=0;
+    float left_total=0;
+    float right_total=0;
+
+    float high_total=0;
+    float low_total=0;
+ 
+    float switch_total=0;
+    float high_aft_switch=0;
+    float low_aft_switch=0;
+
+    float switchp1_total=0;
+    float high_aft_switchp1=0;
+    float low_aft_switchp1=0;
+
+    int since_switch=0;
 
     for (int x=0; x<envList.size(); x++)
        {
 
         if(x==0) envList[x]->communication_input=0.0;
-        else envList[x]->communication_input = envList[x-1]->communication_output;
+        else {
+           envList[x]->communication_input = envList[x-1]->communication_output;
+           if(envList[x]->state!=envList[x-1]->state)
+		since_switch=0;
+        }
 
         org->eliminate=false;
         int tfitness=mazesim(org->net,gather,record,envList[x],org,new_item);
   	fitness+=tfitness;
+
+        total++;
+  
+        bool low_reward = (tfitness==250);
+        bool high_reward = (tfitness==500);
+        Environment* envz=envList[x];
+        if(low_reward && envz->state || high_reward && !envz->state)
+          left_total++;
+        if(high_reward && envz->state || low_reward && !envz->state)
+          right_total++;
+         
+        if(tfitness==250) low_total++;
+        else if(tfitness==500) high_total++;
+       
+        if(since_switch==0) {
+          switch_total++;
+	  if(tfitness==250) low_aft_switch++;
+          else if(tfitness==500) high_aft_switch++;
+	}  
+                  
+        if(since_switch==1) {
+          switchp1_total++;
+	  if(tfitness==250) low_aft_switchp1++;
+          else if(tfitness==500) high_aft_switchp1++;
+	}  
+                 
+        since_switch++;
+
         if(debugflag) {
 	cout << "sx " << envList[x]->hero.start.x << " " << envList[x]->hero.start.y << endl;
 	cout << "tfit" << tfitness << " ci" << envList[x]->communication_input << " " << "co" << envList[x]->communication_output << endl;
@@ -1415,16 +1469,30 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
     if (fitness>highest_fitness)
         highest_fitness=fitness;
 
+    if(novelty_measure==novelty_prob) {
+     gather.clear();
+     vector<float> probs;
+
+     probs.push_back(left_total/total);
+     probs.push_back(right_total/total);
+     probs.push_back(high_total/total);
+     probs.push_back(low_total/total);
+     probs.push_back(high_aft_switch/switch_total);
+     probs.push_back(low_aft_switch/switch_total);
+     probs.push_back(high_aft_switchp1/switchp1_total);
+     probs.push_back(low_aft_switchp1/switchp1_total);
+
+     gather.push_back(probs);
+    }
+
     for (int i=0; i<gather.size(); i++)
         new_item->data.push_back(gather[i]);
 
 
-  /*
    for (int x=0;x<gather.size();x++) 
    for(int y=0;y<gather[x].size();y++)
     cout << gather[x][y];
    cout <<endl;
-  */
 
     //set fitness (this is 'real' objective-based fitness, not novelty)
     new_item->fitness=fitness;

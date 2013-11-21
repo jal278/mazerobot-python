@@ -344,10 +344,12 @@ public:
 class Environment
 {
 public:
+    double state;
     double communication_input;
     double communication_output;
     Environment(const Environment &e)
     {
+	state=e.state;
 	communication_input=e.communication_input;
         steps=e.steps;
         hero.location = e.hero.location;
@@ -410,6 +412,7 @@ public:
 	communication_input=0.0;
         ifstream inpfile(filename);
         int num_lines;
+        inpfile >> state;
         inpfile >> disable;
         inpfile >> steps;
         inpfile >> num_lines; //read in how many line segments
