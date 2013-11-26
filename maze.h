@@ -533,7 +533,6 @@ public:
         //inputs[i+j+k+1] = distance;
 
         //inputs[i+j+k+1] = reachgoal; //was reachpoi
-
         inputs[i+j+k+1] = communication_input; //was reachpoi
 
         return;
