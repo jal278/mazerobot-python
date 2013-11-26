@@ -71,7 +71,7 @@ mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &bra
         //env=mazesimIni(env1,net,dc);
 
 	timer = new wxTimer(this, 1);
-	timer->Start(10); //was 50
+	timer->Start(50); //was 50
 	humancontrol=false;
 }
 
@@ -163,23 +163,24 @@ void mazeDlg::OnPaint(wxPaintEvent& event)
   heropen.SetWidth(3);
   
   //draw inputs
- double inputs[30];
- env->generate_neural_inputs(inputs); 
+ //double inputs[30];
+ //env->generate_neural_inputs(inputs); 
 if(true)
- for(int i=0;i<10;i++)
+ for(int i=0;i<net->inputs.size();i++)
   {
    dc.SetBrush(*wxBLACK_BRUSH);
+   double input = net->inputs[i]->activation;
    dc.DrawCircle(i*30+20,500,(int)(10.0));
 
-   if(inputs[i]>0.5)
+   if(input>0.5)
    dc.SetBrush(*wxGREEN_BRUSH);
    else
    dc.SetBrush(*wxBLUE_BRUSH);
-   dc.DrawCircle(i*30+20,500,(int)(inputs[i]*10.0));
+   dc.DrawCircle(i*30+20,500,(int)(input*10.0));
   }
 
  
- for(int i=0;i<3;i++)
+ for(int i=0;i<2;i++)
   {
    dc.SetBrush(*wxBLACK_BRUSH);
    dc.DrawCircle(i*30+20,550,10);

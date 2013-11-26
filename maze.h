@@ -509,6 +509,7 @@ public:
          if(counter>50)
           memory=false;
         }
+        //cout << memory << endl;
         //bias
         inputs[0]=(1.0);
 
@@ -565,7 +566,7 @@ public:
 
         if(memory)
           if(memory_stage==0) 
-            inputs[i+j+k+1] = communication_input; //was reachpoi
+            inputs[i+j+k+1] = state; //was reachpoi
           else if(memory_stage==1)
             inputs[i+j+k+1] = 0.0; //was reachpoi
  
