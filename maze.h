@@ -312,8 +312,9 @@ public:
 #endif
 
         //define the radar sensors
-        radarAngles1.push_back(0.0);
-        radarAngles2.push_back(360.0);
+
+        //radarAngles1.push_back(0.0);
+        //radarAngles2.push_back(360.0);
 
 /*
         radarAngles1.push_back(45.0);
@@ -344,11 +345,17 @@ public:
 class Environment
 {
 public:
+    bool memory;
+    int memory_stage;
+    int counter;
     double state;
     double communication_input;
     double communication_output;
     Environment(const Environment &e)
     {
+        memory=true;
+        memory_stage=0;
+        counter=0;
 	state=e.state;
 	communication_input=e.communication_input;
         steps=e.steps;
@@ -409,6 +416,9 @@ public:
     //initialize environment from maze file
     Environment(const char* filename)
     {
+        memory=true;
+        memory_stage=0;
+        counter=0;
 	communication_input=0.0;
         ifstream inpfile(filename);
         int num_lines;
@@ -488,9 +498,17 @@ public:
         if(dist<DIST_CONSIDER) reachpoi=1; //if within 5 units, success!
         return dist;
     }
+
     //create neural net inputs from sensors
     void generate_neural_inputs(double* inputs)
     {
+        counter++;
+        if(memory) {
+	 if(counter>25)
+          memory_stage=1;
+         if(counter>50)
+          memory=false;
+        }
         //bias
         inputs[0]=(1.0);
 
@@ -498,7 +516,11 @@ public:
         int i,j,k;
         for(i=0; i<(int)hero.rangeFinders.size(); i++)
         {
+            if(!memory) 
             inputs[1+i]=(hero.rangeFinders[i]/hero.rangefinder_range);
+            else
+            inputs[1+i]=0.0;
+
             if(isnan(inputs[1+i]))
                 cout << "NAN in inputs" << endl;
         }
@@ -506,7 +528,10 @@ public:
         //radar
         for(j=0; j<(int)hero.radar.size(); j++)
         {
+            if(!memory)
             inputs[i+j+1]=(hero.radar[j]);
+            else
+            inputs[i+j+1]=0.0;
             if(isnan(inputs[i+j]))
                 cout << "NAN in inputs" << endl;
         }
@@ -520,7 +545,10 @@ public:
         //poi radar
         for(k=0; k<(int)hero.poi_radar.size(); k++)
         {
-            inputs[i+j+k+1]=(hero.poi_radar[k]);
+            if(!memory)
+             inputs[i+j+k+1]=(hero.poi_radar[k]);
+            else
+             inputs[i+j+k+1]=0.0;
             if(isnan(inputs[i+j+k]))
                 cout << "NaN in inputs" << endl;
         }
@@ -530,20 +558,28 @@ public:
         distance = 1.0 - (distance/100.0);
         if(distance<0.0)
             distance=0.0;
+
         //inputs[i+j+k+1] = distance;
 
         //inputs[i+j+k+1] = reachgoal; //was reachpoi
-        inputs[i+j+k+1] = communication_input; //was reachpoi
 
+        if(memory)
+          if(memory_stage==0) 
+            inputs[i+j+k+1] = communication_input; //was reachpoi
+          else if(memory_stage==1)
+            inputs[i+j+k+1] = 0.0; //was reachpoi
+ 
         return;
     }
 
     //transform neural net outputs into angular velocity and speed
-    void interpret_outputs(float o1,float o2,float o3)
+    void interpret_outputs(float o1,float o2)
     {
+        if(memory)
+          return;
         if(isnan(o1) || isnan(o2))
             cout << "OUTPUT ISNAN" << endl;
-        communication_output=o3;
+        //communication_output=o3;
         //why apply accelerations?
         //hero.ang_vel+=(o1-0.5)*1.0;
         //hero.speed+=(o2-0.5)*1.0;

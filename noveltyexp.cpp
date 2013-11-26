@@ -875,7 +875,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && new_org->noveltypoint->fitness>=3500) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -961,7 +961,7 @@ double mazesimStep(Environment* newenv,Network *net,vector< vector<float> > &dc)
     net->load_sensors(inputs);
     net->activate();
     //use the net's outputs to change heading and velocity of navigator
-    newenv->interpret_outputs(net->outputs[0]->activation,net->outputs[1]->activation,net->outputs[2]->activation);
+    newenv->interpret_outputs(net->outputs[0]->activation,net->outputs[1]->activation);
     //update the environment
     newenv->Update();
     newenv->distance_to_poi();
@@ -1488,12 +1488,12 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
     for (int i=0; i<gather.size(); i++)
         new_item->data.push_back(gather[i]);
 
-if (false)
+if (false) {
    for (int x=0;x<gather.size();x++) 
    for(int y=0;y<gather[x].size();y++)
     cout << gather[x][y];
    cout <<endl;
-
+}
     //set fitness (this is 'real' objective-based fitness, not novelty)
     new_item->fitness=fitness;
     org->fitness=fitness;
