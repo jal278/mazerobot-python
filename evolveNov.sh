@@ -1,1 +1,1 @@
-./mazesim --sg mazestartgenes -m communication_maze_list_bigger.txt -o test -s neat.ne -n --nm prob
+./mazesim --sg mazestartgenes_mem -m memory_maze_list.txt -o test -s neat.ne -n --nm prob -r 0
