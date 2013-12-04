@@ -284,6 +284,7 @@ bool Network::activate_ctrnn(double dt) {
 // Activates the net such that all outputs are active
 // Returns true on success;
 bool Network::activate() {
+	adaptable = ADAPTABLE;
     std::vector<NNode*>::iterator curnode;
     std::vector<Link*>::iterator curlink;
     double add_amount;  //For adding to the activesum
@@ -316,6 +317,7 @@ bool Network::activate() {
 
             if (((*curnode)->type)!=SENSOR) {
                 (*curnode)->activesum=0;
+				(*curnode)->modulatorysum= 1.0; //1.0; //! standard activation
                 (*curnode)->active_flag=false;  //This will tell us if it has any active inputs
 
                 // For each incoming connection, add the activity from the connection to the activesum
@@ -325,13 +327,21 @@ bool Network::activate() {
                         add_amount=((*curlink)->weight)*(((*curlink)->in_node)->get_active_out());
                         if ((((*curlink)->in_node)->active_flag)||
                                 (((*curlink)->in_node)->type==SENSOR)) (*curnode)->active_flag=true;
+						if ( (*curlink)->in_node->type == MODULATORY)
+						{
+							//std::cout << nodeCounter << " has modulatory neuron "<< (*curnode)->node_id<<"\n";
+							(*curnode)->modulatorysum+=add_amount;
+						}
+						else
+						{
                         (*curnode)->activesum+=add_amount;
+						}
                         //std::cout<<"Node "<<(*curnode)->node_id<<" adding "<<add_amount<<" from node "<<((*curlink)->in_node)->node_id<<std::endl;
                     }
                     else {
                         //Input over a time delayed connection
                         add_amount=((*curlink)->weight)*(((*curlink)->in_node)->get_active_out_td());
-                        (*curnode)->activesum+=add_amount;
+                        //(*curnode)->activesum+=add_amount;
                     }
 
                 } //End for over incoming links
@@ -361,7 +371,25 @@ bool Network::activate() {
                     else {
                         //Now run the net activation through an activation function
                         if ((*curnode)->ftype==SIGMOID)
-                            (*curnode)->activation=NEAT::fsigmoid((*curnode)->activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+						{
+							if (NEUROMODULATION)
+							{
+								if ((*curnode)->type==MODULATORY)  //output for modulatory neurons should be between 0 and 1
+								{
+									//(*curnode)->activation=tanh( (*curnode)->activesum / 2.0); 
+									(*curnode)->activation = NEAT::fsigmoid((*curnode)->activesum,1.0,2.4621365)*2-1;  //Sigmoidal activation- see comments under fsigmoid
+								}
+								else		//for other neurons activation between -1 and 1
+								{
+									//(*curnode)->activation=tanh( (*curnode)->activesum / 2.0); 
+									(*curnode)->activation = NEAT::fsigmoid((*curnode)->activesum,1.0,2.4621365)*2-1;  //Sigmoidal activation- see comments under fsigmoid
+								}
+							}
+							else
+							{
+								(*curnode)->activation=NEAT::fsigmoid((*curnode)->activesum,1.0,2.4621365)*2-1;  //Sigmoidal activation- see comments under fsigmoid
+							}	
+						}
                     }
                     //cout<<(*curnode)->activation<<endl;
 
@@ -387,37 +415,62 @@ bool Network::activate() {
 
             if (((*curnode)->type)!=SENSOR) {
 
+				double modulatoryStrenght =NEAT::fsigmoid ((*curnode)->modulatorysum , 1,0);  
+//				double modulatoryStrenght = tanh( (*curnode)->modulatorysum / 2.0); //
+		
+				if (modulatoryStrenght!=0.0)
+				{
+
+					//check if there is a modulatory neuron connecting to this neuron
+					bool modConnected = false;
+					for(curlink=((*curnode)->incoming).begin();curlink!=((*curnode)->incoming).end();++curlink) 
+					{
+						if ((*curlink)->in_node->type==MODULATORY)
+						{	
+							modConnected = true;
+							break;
+						}
+					}
+
+					//if (!modConnected && (*curnode)->modulatorysum!= 0.0)
+					//{
+					//	std::cout << "This shouldn't happen";
+					//}
+
+					if (!modConnected) continue;
                 // For each incoming connection, perform adaptation based on the trait of the connection
                 for(curlink=((*curnode)->incoming).begin(); curlink!=((*curnode)->incoming).end(); ++curlink) {
 
-                    if (((*curlink)->trait_id==2)||
-                            ((*curlink)->trait_id==3)||
-                            ((*curlink)->trait_id==4)) {
+						//if (((*curlink)->trait_id==2)||
+						//    ((*curlink)->trait_id==3)||
+						//    ((*curlink)->trait_id==4)) {
+						if ((*curlink)->in_node->type!=MODULATORY) {//((*curlink)->trait_id>=2)&& ((*curlink)->trait_id<9) && (*curlink)->in_node->type!=MODULATORY ){  //don't change connection between modulatory neurons and others
 
-                        //In the recurrent case we must take the last activation of the input for calculating hebbian changes
-                        if ((*curlink)->is_recurrent) {
-                            (*curlink)->weight=
-                                hebbian((*curlink)->weight,maxweight,
-                                        (*curlink)->in_node->last_activation,
-                                        (*curlink)->out_node->get_active_out(),
-                                        (*curlink)->params[0],(*curlink)->params[1],
-                                        (*curlink)->params[2]);
+							A=0; B=0; C=-0.38; D=0; //TODO remove
+							learningrate = -94.6;
 
+							double pre, post;
 
+							//In the recurrent case we must take the last activation of the input for calculating hebbian changes
+							if ((*curlink)->is_recurrent) {
+								pre = (*curlink)->in_node->last_activation;
+								post = (*curlink)->out_node->get_active_out();
                         }
                         else { //non-recurrent case
-                            (*curlink)->weight=
-                                hebbian((*curlink)->weight,maxweight,
-                                        (*curlink)->in_node->get_active_out(),
-                                        (*curlink)->out_node->get_active_out(),
-                                        (*curlink)->params[0],(*curlink)->params[1],
-                                        (*curlink)->params[2]);
+								pre = (*curlink)->in_node->get_active_out();
+								post = (*curlink)->out_node->get_active_out();
                         }
-                    }
+							double delta = modulatoryStrenght * learningrate * (A*pre*post + B*pre + C*post + D);
+							(*curlink)->weight+=delta;
 
+							//std::cout << learningrate<<" "<<A<<" "<<B<<" "<<C<<" "<<D<<"\n";
+							if ((*curlink)->weight>10) (*curlink)->weight=10;
+							if ((*curlink)->weight<-10) (*curlink)->weight=-10;
                 }
 
             }
+				}
+			}
 
         }
 
@@ -560,22 +613,44 @@ void Network::give_name(char *newname) {
 // (to make sure their counts correspond)
 
 int Network::nodecount() {
+	return all_nodes.size();
+	//int counter=0;
+	//std::vector<NNode*>::iterator curnode;
+	//std::vector<NNode*>::iterator location;
+	//std::vector<NNode*> seenlist;  //List of nodes not to doublecount
+
+	//for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
+
+	//	location = std::find(seenlist.begin(),seenlist.end(),(*curnode));
+	//	if (location==seenlist.end()) {
+	//		counter++;
+	//		seenlist.push_back(*curnode);
+	//		nodecounthelper((*curnode),counter,seenlist);
+	//	}
+	//}
+
+	//numnodes=counter;
+
+	//return counter;
+
+}
+
+int Network::m_nodecount() {
     int counter=0;
     std::vector<NNode*>::iterator curnode;
     std::vector<NNode*>::iterator location;
     std::vector<NNode*> seenlist;  //List of nodes not to doublecount
 
-    for(curnode=outputs.begin(); curnode!=outputs.end(); ++curnode) {
+	for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
 
-        location = std::find(seenlist.begin(),seenlist.end(),(*curnode));
-        if (location==seenlist.end()) {
+		if ((*curnode)->type==MODULATORY) {
             counter++;
             seenlist.push_back(*curnode);
             nodecounthelper((*curnode),counter,seenlist);
         }
     }
 
-    numnodes=counter;
+	//numnodes=counter;
 
     return counter;
 
@@ -698,7 +773,7 @@ bool Network::is_recur(NNode *potin_node,NNode *potout_node,int &count,int thres
 
     if (count>thresh) {
         //cout<<"returning false"<<endl;
-        return true;  //Short out the whole thing- loop detected
+		return false;  //Short out the whole thing- loop detected
     }
 
     if (potin_node==potout_node) return true;
@@ -808,7 +883,7 @@ int Network::max_depth() {
     int thresh=(all_nodes.size())*(all_nodes.size());
 
     for(curoutput=outputs.begin(); curoutput!=outputs.end(); curoutput++) {
-        cur_depth=(*curoutput)->depth(0,this,count,thresh);
+		cur_depth=(*curoutput)->depth(0,this);
         if (cur_depth>max) max=cur_depth;
     }
 

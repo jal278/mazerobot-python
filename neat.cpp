@@ -514,7 +514,10 @@ double NEAT::fsigmoid(double activesum,double slope,double constant) {
     //return (1/(1+(exp(-activesum-constant)))); //simple left shifted
 
     //NON-SHIFTED STEEPENED
-    return (1/(1+(exp(-(slope*activesum))))); //Compressed
+	//return (1/(1+(exp(-(slope*activesum))))); //Compressed
+
+	
+	return  (1.0 / (1.0 + exp(- slope * activesum))); 
 }
 
 double NEAT::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
@@ -588,7 +591,7 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 
 }
 
-double NEAT::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+double NEAT::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate, double modulatoryActivation) {
 
     bool neg=false;
     double delta;
@@ -623,6 +626,10 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
         delta=
             hebb_rate*(maxweight-weight)*active_in*active_out+
             pre_rate*(topweight)*active_in*(active_out-1.0);
+		if (NEUROMODULATION)
+		{
+			delta*=modulatoryActivation;
+		}
         //post_rate*(weight+1.0)*(active_in-1.0)*active_out;
 
         //delta=delta-hebb_rate/2; //decay
@@ -650,6 +657,10 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
             //post_rate*weight*(active_in-1.0)*active_out;
             0;
 
+		if (NEUROMODULATION)
+		{
+			delta*=modulatoryActivation;
+		}
         //delta=delta-hebb_rate; //decay
 
         //delta=delta+randposneg()*randfloat()*0.01; //noise

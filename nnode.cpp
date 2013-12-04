@@ -9,6 +9,7 @@ NNode::NNode(nodetype ntype,int nodeid) {
     active_flag=false;
     activesum=0;
     activation=0;
+	modulatorysum=0;
     output=0;
     last_activation=0;
     last_activation2=0;
@@ -29,6 +30,7 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
     active_flag=false;
     activesum=0;
     activation=0;
+	modulatorysum=0;
     output=0;
     last_activation=0;
     last_activation2=0;
@@ -53,6 +55,7 @@ NNode::NNode(NNode *n,Trait *t) {
     active_flag=false;
     activation=0;
     output=0;
+	modulatorysum=0;
     last_activation=0;
     last_activation2=0;
     type=n->type; //NEURON or SENSOR type
@@ -79,6 +82,7 @@ NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
     std::vector<Trait*>::iterator curtrait;
 
     activesum=0;
+	modulatorysum=0;
 
     std::stringstream ss(argline);
     //char curword[128];
@@ -122,6 +126,7 @@ NNode::NNode (const NNode& nnode)
 {
     active_flag = nnode.active_flag;
     activesum = nnode.activesum;
+	modulatorysum = nnode.modulatorysum;
     activation = nnode.activation;
     output = nnode.output;
     last_activation = nnode.last_activation;
@@ -232,6 +237,7 @@ void NNode::flushback() {
             last_activation2=0;
         }
 
+		modulatorysum = 0;
         //Flush back recursively
         for(curlink=incoming.begin(); curlink!=incoming.end(); ++curlink) {
             //Flush the link itself (For future learning parameters possibility)
@@ -397,20 +403,15 @@ void NNode::print_to_file(std::ostream &outFile) {
 }
 
 //Find the greatest depth starting from this neuron at depth d
-int NNode::depth(int d, Network *mynet,int &count,int thresh) {
+int NNode::depth(int d, Network *mynet) {
     std::vector<Link*> innodes=this->incoming;
     std::vector<Link*>::iterator curlink;
     int cur_depth; //The depth of the current node
     int max=d; //The max depth
 
-    ++count;
-    if(count>thresh) {
-        return 10;
-        //break out of infinite loop
-    }
     if (d>100) {
         //std::cout<<mynet->genotype<<std::endl;
-        std::cout<<"** DEPTH NOT DETERMINED FOR NETWORK WITH LOOP"<<std::endl;
+    //std::cout<<"** DEPTH NOT DETERMINED FOR NETWORK WITH LOOP"<<std::endl;
         return 10;
     }
 
@@ -421,7 +422,7 @@ int NNode::depth(int d, Network *mynet,int &count,int thresh) {
     else {
 
         for(curlink=innodes.begin(); curlink!=innodes.end(); ++curlink) {
-            cur_depth=((*curlink)->in_node)->depth(d+1,mynet,count,thresh);
+      cur_depth=((*curlink)->in_node)->depth(d+1,mynet);
             if (cur_depth>d) max=cur_depth;
         }
 

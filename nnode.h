@@ -11,7 +11,8 @@ namespace NEAT {
 class Network;
 enum nodetype {
     NEURON = 0,
-    SENSOR = 1
+		SENSOR = 1,
+		MODULATORY = 2
 };
 
 enum nodeplace {
@@ -71,6 +72,7 @@ public:
     double bias;
 
     double activesum;  // The incoming activity before being processed
+		double modulatorysum; //The icoming modulatory activity 
     double activation; // The total activation entering the NNode
     bool active_flag;  // To make sure outputs are active
 
@@ -164,7 +166,7 @@ public:
     void Lamarck();
 
     //Find the greatest depth starting from this neuron at depth d
-    int depth(int d,Network *mynet,int& count, int thresh);
+		int depth(int d,Network *mynet); 
 
 };
 

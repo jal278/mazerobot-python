@@ -3,6 +3,12 @@
 
 #include <cstdlib>
 namespace NEAT {
+
+//hack: 
+	#define ADAPTABLE true
+	#define NEUROMODULATION true
+	#define COMPARE_TRAIT_DIFFERENCES false
+
 extern bool fitness_multiobjective;
 extern bool mo_speciation;
 extern double gravity;
@@ -136,7 +142,7 @@ extern double oldhebbian(double weight, double maxweight, double active_in, doub
 // Returns the new modified weight
 // NOTE: For an inhibatory connection, it makes sense to
 //      emphasize decorrelation on hebbian learning!
-extern double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
+	extern double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate, double modulatoryActivation);
 
 // Returns a normally distributed deviate with 0 mean and unit variance
 // Algorithm is from Numerical Recipes in C, Second Edition

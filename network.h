@@ -43,6 +43,8 @@ public:
 
 public:
 
+		//adaptive rule stuff
+		double A, B, C, D, learningrate;
     Genome *genotype;  // Allows Network to be matched with its Genome
 
     char *name; // Every Network or subNetwork can have a name
@@ -110,6 +112,8 @@ public:
     // Counts the number of nodes in the net if not yet counted
     int nodecount();
 
+		//counts the number of modulatory neurons
+		int m_nodecount();
     // Counts the number of links in the net if not yet counted
     int linkcount();
 

@@ -1529,7 +1529,24 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 
             //Create the new NNode
             //By convention, it will point to the first trait
-            newnode=new NNode(NEURON,curnode_id++,HIDDEN);
+           	if (NEUROMODULATION)
+			{
+				//double d = randfloat();
+				if (randfloat()>0.5)
+				{
+					//Add modulatory node
+					newnode=new NNode(MODULATORY,curnode_id++,HIDDEN);
+				}
+				else
+				{
+					//Add normal node
+					newnode=new NNode(NEURON,curnode_id++,HIDDEN);
+				}
+			}
+			else
+			{
+				newnode=new NNode(NEURON,curnode_id++,HIDDEN);
+			}
 
             //set new node's time constant & bias
             newnode->time_const=randfloat()+0.1;
@@ -1575,7 +1592,24 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
             traitptr=thelink->linktrait;
 
             //Create the new NNode
-            newnode=new NNode(NEURON,(*theinnov)->newnode_id,HIDDEN);
+            	if (NEUROMODULATION)
+			{
+				//double d = randfloat();
+				if (randfloat()>0.5)
+				{
+					//Add modulatory node
+					newnode=new NNode(MODULATORY,(*theinnov)->newnode_id,HIDDEN);
+				}
+				else
+				{
+					//Add normal node
+					newnode=new NNode(NEURON,(*theinnov)->newnode_id,HIDDEN);
+				}
+			}
+			else
+			{
+				newnode=new NNode(NEURON,(*theinnov)->newnode_id,HIDDEN); 
+			}
             //By convention, it will point to the first trait
             //Note: In future may want to change this
             newnode->nodetrait=(*(traits.begin()));
