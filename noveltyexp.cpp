@@ -878,7 +878,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && new_org->noveltypoint->fitness>=(envList.size()-1)*500) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=13000) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -1483,12 +1483,12 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
      probs.push_back(high_total/total);
      probs.push_back(low_total/total);
 
-/*
+
      probs.push_back(high_aft_switch/switch_total);
      probs.push_back(low_aft_switch/switch_total);
      probs.push_back(high_aft_switchp1/switchp1_total);
      probs.push_back(low_aft_switchp1/switchp1_total);
-*/
+
      gather.push_back(probs);
     }
 
