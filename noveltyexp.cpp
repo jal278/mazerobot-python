@@ -535,8 +535,11 @@ Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,c
         pop=new Population(start_genome,NEAT::pop_size);
     else
     {
+	cout << "SEEDING" <<endl;
         pop=new Population(seed_name);//start_genome,NEAT::pop_size,0.0);
         if (evaluate_switch) {
+
+		cout << "EVALING" <<endl;
 	    set_debug_flag(true);
             int dist=0;
             double evol=0.0;
@@ -875,7 +878,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && new_org->noveltypoint->fitness>=envList.size()*500) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && new_org->noveltypoint->fitness>=(envList.size()-1)*500) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -933,6 +936,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
 Environment* mazesimIni(Environment* tocopy,Network *net, vector< vector<float> > &dc)
 {
     double inputs[20];
+    for(int x=0;x<20;x++) inputs[x]=0.0;
     Environment *newenv= new Environment(*tocopy);
 
     //flush the neural net
@@ -956,6 +960,7 @@ Environment* mazesimIni(Environment* tocopy,Network *net, vector< vector<float> 
 double mazesimStep(Environment* newenv,Network *net,vector< vector<float> > &dc)
 {
     double inputs[20];
+    for(int x=0;x<20;x++) inputs[x]=0.0;
 
     newenv->generate_neural_inputs(inputs);
     net->load_sensors(inputs);

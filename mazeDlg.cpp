@@ -71,7 +71,7 @@ mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &bra
         //env=mazesimIni(env1,net,dc);
 
 	timer = new wxTimer(this, 1);
-	timer->Start(50); //was 50
+	timer->Start(10); //was 50
 	humancontrol=false;
 }
 
