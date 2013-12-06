@@ -461,9 +461,10 @@ bool Network::activate() {
 								post = (*curlink)->out_node->get_active_out();
                         }
 							double delta = modulatoryStrenght * learningrate * (A*pre*post + B*pre + C*post + D);
+//cout << delta << endl;
 							(*curlink)->weight+=delta;
-
-							//std::cout << learningrate<<" "<<A<<" "<<B<<" "<<C<<" "<<D<<"\n";
+ 
+		 					//std::cout << learningrate<<" "<<A<<" "<<B<<" "<<C<<" "<<D<<"\n";
 							if ((*curlink)->weight>10) (*curlink)->weight=10;
 							if ((*curlink)->weight<-10) (*curlink)->weight=-10;
                 }
