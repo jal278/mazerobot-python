@@ -59,6 +59,10 @@ mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &bra
 	timestep=0;
         newpop=NULL;
         brainstring=brainfile;
+
+
+        newpop=new NEAT::Population(brainstring.mb_str());
+        net=(newpop->organisms[0]->net);
 	//newpop=new NEAT::Population(brainfile.mb_str());
 	//net=(newpop->organisms[0]->net);
 	//net->print_links_tofile("links.out");
@@ -76,10 +80,8 @@ mazeDlg::mazeDlg(wxWindow *parent, const wxString &mazefile, const wxString &bra
 }
 
 void mazeDlg::load_next_environment() {
- delete newpop;
- newpop=new NEAT::Population(brainstring.mb_str());
- net=(newpop->organisms[0]->net);
 
+ net->flush();
  if(envCounter==0) { 
     envList[0]->communication_input=0.0;
  }
