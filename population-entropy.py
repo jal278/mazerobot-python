@@ -3,8 +3,8 @@ from entropy import *
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
- #mazepy.mazenav.initmaze("hard_maze_list.txt")
- mazepy.mazenav.initmaze("medium_maze_list.txt")
+ mazepy.mazenav.initmaze("hard_maze_list.txt")
+ #mazepy.mazenav.initmaze("medium_maze_list.txt")
  mazepy.mazenav.random_seed()
 
  robot=None
@@ -65,4 +65,5 @@ if(__name__=='__main__'):
  robot.mutate()
  robot.map()
  print "evolvability:", evo_fnc(robot,1000)
-
+ 
+ optimize_evolvability(child)
