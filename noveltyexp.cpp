@@ -875,7 +875,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=14750) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=16000) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
