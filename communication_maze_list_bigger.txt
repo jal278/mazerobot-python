@@ -34,3 +34,17 @@ communication_maze2.txt
 communication_maze2.txt
 communication_maze2.txt
 communication_maze2.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze.txt
+communication_maze2.txt
+communication_maze2.txt
+communication_maze2.txt
+communication_maze2.txt
+communication_maze2.txt
+communication_maze2.txt
+communication_maze2.txt

@@ -875,7 +875,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
         }
 
 
-        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=16000) { //(newrec->ToRec[3]>=envList.size())) {
+        if (!weakfirst && newrec->ToRec[5]!=-1 && new_org->noveltypoint->fitness>=(250*10+500*40)) { //(newrec->ToRec[3]>=envList.size())) {
             weakfirst=true;
             //NEAT::evolvabilitytest=true; //TODO REMOVE LATER
             char filename[100];
@@ -1198,16 +1198,6 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
         record->ToRec[2]=newenv->hero.location.y;
         record->ToRec[3]+=newenv->reachgoal;
         record->ToRec[4]+=newenv->reachpoi;
-
-        if(record->ToRec[5]==1 && newenv->reachpoi)
-          record->ToRec[5]=-1;
-        
-        if(!newenv->reachpoi && !newenv->reachgoal)
-          record->ToRec[5]=-1;
-
-        if(record->ToRec[5]!=-1)
-         record->ToRec[5]=newenv->reachpoi;
-       
         //record->ToRec[5]= (-newenv->hero.collisions);
     }
 
@@ -1411,7 +1401,11 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
         if(high_reward && envz->state || low_reward && !envz->state)
           right_total++;
          
-        if(tfitness==250) low_total++;
+        if(tfitness==250) {
+ 	 low_total++;
+         if(since_switch>0 && record!=NULL) 
+          record->ToRec[5]=-1;
+	}
         else if(tfitness==500) high_total++;
        
         if(since_switch==0) {
