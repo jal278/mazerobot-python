@@ -13,8 +13,8 @@ import mazepy
 import numpy
 from entropy import *
 
-NOV=1
 FIT=0
+NOV=1
 CUR=2
 
 obj=[NOV,CUR]
@@ -69,9 +69,20 @@ class MazeSolution(Solution):
         Mutation of T1 solution.
         '''
         self.robot.mutate()
-    
-if __name__ == '__main__':
 
+import sys 
+if __name__ == '__main__':
+    obj = []
+    if sys.argv[1]=='1':
+     obj.append(FIT)
+    if sys.argv[2]=='1':
+     obj.append(NOV)
+    if sys.argv[3]=='1':
+     obj.append(CUR)
+
+    random.seed(int(sys.argv[4]))
+
+    print obj
     nsga2 = NSGAII(len(obj), 0.9, 1.0)
     
     P = []
