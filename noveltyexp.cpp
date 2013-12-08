@@ -970,14 +970,16 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
     if (novelty_measure == novelty_sample ||
             novelty_measure ==novelty_sample_free)
         data.reserve(timesteps/stepsize);
+ 
+    novelty_measure=novelty_accum;
     if (novelty_measure == novelty_accum)
     {
         data.reserve(100);
         float minx,miny,maxx,maxy;
         newenv->get_range(minx,miny,maxx,maxy);
         vector<int> dims;
-        dims.push_back(10);
-        dims.push_back(10);
+        dims.push_back(ENT_GRID_SIZE);
+        dims.push_back(ENT_GRID_SIZE);
         accum=new position_accumulator(dims,minx,miny,maxx,maxy);
     }
 
@@ -1126,6 +1128,8 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
     if (novelty_measure==novelty_accum)
     {
         accum->transform();
+        if(ni!=NULL) 
+          ni->path_entropy=accum->entropy();
         for (int x=0; x<accum->size; x++)
             data.push_back(accum->buffer[x]);
     }

@@ -1,6 +1,8 @@
 #ifndef NVSET_H
 #define NVSET_H
 
+#define ENT_GRID_SIZE 20
+
 //#define PLOT_ON
 
 #include <math.h>
@@ -141,6 +143,7 @@ public:
     float maxy;
     float miny;
     float max_dist;
+    float path_entropy;
 //we can keep track of genotype & phenotype of novel item
     NEAT::Genome* genotype;
     NEAT::Network* phenotype;

@@ -120,11 +120,14 @@ static float scalex(float x,mazenav* mn) {
 static float scaley(float x,mazenav* mn) {
  return scale(x,mn->nov_item->miny,mn->nov_item->maxy);
 }
-
 static float endx(mazenav* mn) { return scalex(mn->nov_item->end_x,mn); }
 static float endy(mazenav* mn) { return scaley(mn->nov_item->end_y,mn); }
 static float midx(mazenav* mn) { return scalex(mn->nov_item->mid_x,mn); }
 static float midy(mazenav* mn) { return scaley(mn->nov_item->mid_y,mn); }
+
+static float state_entropy(mazenav* mn) {
+ return mn->nov_item->path_entropy; 
+}
 
 static float end_goal(mazenav* mn) {
  return mn->nov_item->end_goal_dist / mn->nov_item->max_dist;

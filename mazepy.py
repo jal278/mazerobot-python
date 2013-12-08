@@ -67,6 +67,30 @@ except AttributeError:
     _newclass = 0
 
 
+class floatArray(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, floatArray, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, floatArray, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        this = _mazepy.new_floatArray(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _mazepy.delete_floatArray
+    __del__ = lambda self : None;
+    def __getitem__(self, *args): return _mazepy.floatArray___getitem__(self, *args)
+    def __setitem__(self, *args): return _mazepy.floatArray___setitem__(self, *args)
+    def cast(self): return _mazepy.floatArray_cast(self)
+    __swig_getmethods__["frompointer"] = lambda x: _mazepy.floatArray_frompointer
+    if _newclass:frompointer = staticmethod(_mazepy.floatArray_frompointer)
+floatArray_swigregister = _mazepy.floatArray_swigregister
+floatArray_swigregister(floatArray)
+
+def floatArray_frompointer(*args):
+  return _mazepy.floatArray_frompointer(*args)
+floatArray_frompointer = _mazepy.floatArray_frompointer
+
 class feature_detector(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, feature_detector, name, value)
@@ -93,6 +117,8 @@ class feature_detector(_object):
     if _newclass:coll = staticmethod(_mazepy.feature_detector_coll)
     __swig_getmethods__["turn"] = lambda x: _mazepy.feature_detector_turn
     if _newclass:turn = staticmethod(_mazepy.feature_detector_turn)
+    __swig_getmethods__["state_entropy"] = lambda x: _mazepy.feature_detector_state_entropy
+    if _newclass:state_entropy = staticmethod(_mazepy.feature_detector_state_entropy)
     def __init__(self): 
         this = _mazepy.new_feature_detector()
         try: self.this.append(this)
@@ -141,6 +167,10 @@ feature_detector_coll = _mazepy.feature_detector_coll
 def feature_detector_turn(*args):
   return _mazepy.feature_detector_turn(*args)
 feature_detector_turn = _mazepy.feature_detector_turn
+
+def feature_detector_state_entropy(*args):
+  return _mazepy.feature_detector_state_entropy(*args)
+feature_detector_state_entropy = _mazepy.feature_detector_state_entropy
 
 class mazenav(_object):
     __swig_setmethods__ = {}

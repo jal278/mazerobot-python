@@ -1,8 +1,12 @@
+%include "carrays.i"
+%array_class(float,floatArray);
+
 %newobject *::copy;
 %module mazepy
 %{
 #include "maze_py.h"
 %}
+
 
 class feature_detector {
 public:
@@ -16,6 +20,7 @@ static float midy(mazenav* mn);
 static float spd(mazenav* mn);
 static float coll(mazenav* mn);
 static float turn(mazenav* mn);
+static float state_entropy(mazenav* mn);
 };
 
 class mazenav {

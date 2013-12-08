@@ -72,6 +72,19 @@ public:
             buffer[x]/=(float)count;
     }
 
+    double entropy() 
+    {
+        double ent=0.0;
+        for(int x=0;x<size;x++)
+        {
+         if (buffer[x]!=0.0) {
+          ent+=buffer[x]*log(buffer[x]);
+	  //ent+= -1;
+         }
+       
+        }
+        return -ent;
+    }
     ~position_accumulator()
     {
         free(buffer);
