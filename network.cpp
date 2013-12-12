@@ -453,7 +453,7 @@ B=trait->params[1]*2.0-1.0;
 C=trait->params[2]*2.0-1.0;
 D=trait->params[3]*2.0-1.0;
 learningrate=trait->params[4]*200.0-100.0;
-cout << A << " " << B << " " << C << " " << D << " " << learningrate << endl;
+//cout << A << " " << B << " " << C << " " << D << " " << learningrate << endl;
 /*
 							A=0; B=0; C=-0.38; D=0; //TODO remove
 							learningrate = -94.6;
