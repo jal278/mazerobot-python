@@ -1,3 +1,4 @@
+#include "genome.h"
 #include "network.h"
 #include <math.h>
 #include <iostream>
@@ -446,9 +447,17 @@ bool Network::activate() {
 						//    ((*curlink)->trait_id==4)) {
 						if ((*curlink)->in_node->type!=MODULATORY) {//((*curlink)->trait_id>=2)&& ((*curlink)->trait_id<9) && (*curlink)->in_node->type!=MODULATORY ){  //don't change connection between modulatory neurons and others
 
+Trait* trait=genotype->traits[0];
+A=trait->params[0]*2.0-1.0;
+B=trait->params[1]*2.0-1.0;
+C=trait->params[2]*2.0-1.0;
+D=trait->params[3]*2.0-1.0;
+learningrate=trait->params[4]*200.0-100.0;
+cout << A << " " << B << " " << C << " " << D << " " << learningrate << endl;
+/*
 							A=0; B=0; C=-0.38; D=0; //TODO remove
 							learningrate = -94.6;
-
+*/
 							double pre, post;
 
 							//In the recurrent case we must take the last activation of the input for calculating hebbian changes

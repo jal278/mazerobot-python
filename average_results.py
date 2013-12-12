@@ -1,10 +1,10 @@
 import glob
-c_win=13000
+c_win=22500
 m_win=9000
 l_win=c_win
 
 win=l_win
-d="lres"
+d="lres2"
 
 f=glob.glob("%s/*_norm*log.txt"%d)
 n=glob.glob("%s/*_nov*log.txt"%d)
@@ -25,7 +25,8 @@ def max_arr(k):
  for z in k:
   mx=max(z,mx)
   n.append(mx)
- return n[0:600]
+ print len(n)
+ return n[50:1000]
 
 def true_arr(k):
  pad=1000
@@ -39,7 +40,7 @@ def true_arr(k):
  # n+=[n[-1]]*(pad-len(n))
  return n[:pad]
 
-def avg(k,sz=1000):
+def avg(k,sz=600):
  k=[l[:sz] for l in k if len(l)>=sz]
  nm=len(k)
  c=len(k[0])
@@ -54,8 +55,8 @@ fit=[]
 nov=[]
 nov2=[]
 
-fn=true_arr
-
+#fn=true_arr
+fn=max_arr
 for k in f:
  fit.append(fn(read(k)))
 
