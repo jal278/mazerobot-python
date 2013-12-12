@@ -374,7 +374,7 @@ public:
     }
 
     void randomize() {
-     hero.heading+= rand()%90 - 45;
+     hero.heading+= rand()%10 - 5;
      hero.location.x+= rand()%10 - 5;
      hero.location.y+= rand()%10 - 5;
      hero.start.x=hero.location.x;
