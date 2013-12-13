@@ -1,7 +1,7 @@
 
 #ifndef MAZE_H
 #define MAZE_H
-#define DIST_CONSIDER 30
+#define DIST_CONSIDER 20
 #include <vector>
 #include <fstream>
 #include <iostream>
