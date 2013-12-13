@@ -583,12 +583,13 @@ public:
     //run a time step of the simulation
     void Update()
     {
-        	if ((reachgoal || reachpoi) && goalattract)
-        		return;
         float vx=cos(hero.heading/180.0*3.1415926)*hero.speed;
         float vy=sin(hero.heading/180.0*3.1415926)*hero.speed;
         if(isnan(vx))
             cout << "VX NAN" << endl;
+        
+        Point newloc;
+       if (!((reachgoal || reachpoi) && goalattract)) {
 
         hero.heading+=hero.ang_vel;
         if(isnan(hero.ang_vel))
@@ -597,9 +598,9 @@ public:
         if(hero.heading>360) hero.heading-=360;
         if(hero.heading<0) hero.heading+=360;
 
-        Point newloc;
         newloc.x=vx+hero.location.x;
         newloc.y=vy+hero.location.y;
+
         //collision detection
         if(!hero.collide && !collide_lines(newloc,hero.radius))
         {
@@ -612,6 +613,7 @@ public:
             hero.collisions++;
             if(disable)
                 hero.collide=true;
+        }
         }
         update_rangefinders(hero);
         update_radar(hero);
