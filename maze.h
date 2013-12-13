@@ -583,8 +583,8 @@ public:
     //run a time step of the simulation
     void Update()
     {
-        //	if (reachgoal && goalattract)
-        //		return;
+        	if ((reachgoal || reachpoi) && goalattract)
+        		return;
         float vx=cos(hero.heading/180.0*3.1415926)*hero.speed;
         float vy=sin(hero.heading/180.0*3.1415926)*hero.speed;
         if(isnan(vx))
