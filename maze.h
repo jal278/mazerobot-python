@@ -578,13 +578,13 @@ public:
     //run a time step of the simulation
     void Update()
     {
-        //	if (reachgoal && goalattract)
         //		return;
         float vx=cos(hero.heading/180.0*3.1415926)*hero.speed;
         float vy=sin(hero.heading/180.0*3.1415926)*hero.speed;
         if(isnan(vx))
             cout << "VX NAN" << endl;
 
+        if (!((reachpoi || reachgoal) && goalattract)) {
         hero.heading+=hero.ang_vel;
         if(isnan(hero.ang_vel))
             cout << "HERO ANG VEL NAN" << endl;
@@ -607,6 +607,7 @@ public:
             hero.collisions++;
             if(disable)
                 hero.collide=true;
+        }
         }
         update_rangefinders(hero);
         update_radar(hero);
