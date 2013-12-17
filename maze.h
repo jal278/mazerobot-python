@@ -507,6 +507,8 @@ public:
 	 if(counter>25)
           memory_stage=1;
          if(counter>50)
+          memory_stage=2;
+         if(counter>75)
           memory=false;
         }
         //cout << memory << endl;
@@ -564,12 +566,15 @@ public:
 
         //inputs[i+j+k+1] = reachgoal; //was reachpoi
 
-        if(memory)
-          if(memory_stage==0) 
-            inputs[i+j+k+1] = state; //was reachpoi
-          else if(memory_stage==1)
+        if(memory) {
             inputs[i+j+k+1] = 0.0; //was reachpoi
- 
+            inputs[i+j+k+2] = 0.0; //was reachpoi
+
+          if(memory_stage==0)  
+            inputs[i+j+k+1] = ((int)state)%2; //was reachpoi
+          else if(memory_stage==2)
+            inputs[i+j+k+2] = (((int)state)%4)/2; //was reachpoi
+        }
         return;
     }
 
