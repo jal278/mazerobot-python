@@ -4,7 +4,7 @@ m_win=9000
 l_win=c_win
 
 win=l_win
-d="res_hard"
+d="res"
 
 f=glob.glob("%s/*_norm*log.txt"%d)
 n=glob.glob("%s/*_nov*log.txt"%d)
@@ -40,7 +40,7 @@ def true_arr(k):
  # n+=[n[-1]]*(pad-len(n))
  return n[:pad]
 
-def avg(k,sz=450):
+def avg(k,sz=600):
  k=[l[:sz] for l in k if len(l)>=sz]
  nm=len(k)
  c=len(k[0])
@@ -72,7 +72,7 @@ title("Learning results")
 xlabel("Generations")
 ylabel("Success Probability")
 plot(avg(fit),'r-')
-#plot(avg(nov),'g-')
+plot(avg(nov),'g-')
 plot(avg(nov2),'k-')
 legend( ('Fitness','Novelty (fine-grained)','Novelty (summary probabilities)'),loc='upper_left')
 
