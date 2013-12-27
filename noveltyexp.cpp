@@ -750,17 +750,17 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
             cout << offspring_count << endl;
             char fname[100];
             sprintf(fname,"%sarchive.dat",output_dir);
-            archive.Serialize(fname);
+            //archive.Serialize(fname);
 
             sprintf(fname,"%sfittest_%d",output_dir,offspring_count/NEAT::pop_size);
             archive.serialize_fittest(fname);
 
             sprintf(fname,"%sgen_%d",output_dir,offspring_count/NEAT::pop_size);
-            pop->print_to_file_by_species(fname);
+            //pop->print_to_file_by_species(fname);
 
 
             sprintf(fname,"%srecord.dat",output_dir);
-            Record.serialize(fname);
+            //Record.serialize(fname);
         }
 
         //Every pop_size reproductions, adjust the compat_thresh to better match the num_species_targer
@@ -919,14 +919,14 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
     sprintf(filename,"%srecord.dat",output_dir);
     char fname[100];
     sprintf(fname,"%srtarchive.dat",output_dir);
-    archive.Serialize(fname);
+    //archive.Serialize(fname);
     //Record.serialize(filename);
 
     sprintf(fname,"%sfittest_final",output_dir);
     archive.serialize_fittest(fname);
 
     sprintf(fname,"%srtgen_final",output_dir);
-    pop->print_to_file_by_species(fname);
+    //pop->print_to_file_by_species(fname);
     delete pop;
     exit(0);
     return 0;
