@@ -1856,7 +1856,7 @@ void Population::reassign_species(Organism *org) {
             if (curspecies!=(species).end())
                 comporg=(*curspecies)->first();
         }
-        else if (((org->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
+        else if ((!NEAT::speciation)||((org->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
             //If we found the same species it's already in, return 0
             if ((*curspecies)==org->species) {
                 found=true;
