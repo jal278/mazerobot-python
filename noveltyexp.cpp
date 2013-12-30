@@ -1,3 +1,4 @@
+#define EXP_LENGTH 1001
 #include "experiments.h"
 #include "noveltyset.h"
 
@@ -28,6 +29,7 @@ static bool debugflag=false;
 static Environment* env;
 static vector<Environment*> envList;
 static ofstream *logfile=NULL;
+static char mfile[100];
 
 void set_debug_flag(bool val) {
  debugflag=val;
@@ -213,15 +215,17 @@ float maze_novelty_metric(noveltyitem* x,noveltyitem* y)
 
 void read_in_environments(const char* mazefile, vector<Environment*>& envLst)
 {
+    strcpy(mfile,mazefile);
     ifstream listfile(mazefile);
 
+    envLst.clear();
     while (!listfile.eof())
     {
         string filename;
         getline(listfile,filename);
         if (filename.length() == 0)
             break;
-        cout << "Reading maze: " << filename << endl;
+        //cout << "Reading maze: " << filename << endl;
         Environment* new_env = new Environment(filename.c_str());
         new_env->randomize();
         envLst.push_back(new_env);
@@ -485,6 +489,21 @@ Population *maze_passive(char* outputdir,const char* mazefile,int par,const char
     return pop;
 }
 
+void generalization_test(const char* mazefile,Organism* org) {
+
+            for (int k=0;k<50;k++) {
+
+            read_in_environments(mazefile,envList);
+            noveltyitem* ni = maze_novelty_map(org);    
+            //cout << endl << dist << " " << evol << endl;
+            for(int i=0;i<ni->data[0].size();i++) {
+            cout << ni->data[0][i] << " ";
+            }
+            cout << ni->fitness << endl;
+            delete ni;
+            }
+}
+
 //novelty maze navigation run
 Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,const char* genes,bool novelty) {
 
@@ -537,15 +556,17 @@ Population *maze_novelty_realtime(char* outputdir,const char* mazefile,int par,c
     {
         pop=new Population(seed_name);//start_genome,NEAT::pop_size,0.0);
         if (evaluate_switch) {
-	    set_debug_flag(true);
+		cout << "EVALING" <<endl;
+	    //set_debug_flag(true);
             int dist=0;
             double evol=0.0;
             //evolvability(pop->organisms[0],"dummyfile",&dist,&evol,true);
-            pop->set_evaluator(&maze_novelty_map);
-            pop->evaluate_all();
-                  
-            //cout << endl << dist << " " << evol << endl;
-            cout << pop->organisms[0]->fitness << endl;
+            generalization_test(mazefile,pop->organisms[0]); 
+            //pop->set_evaluator(&maze_novelty_map);
+            //pop->evaluate_all();
+            //read_in_environments(mazefile,envList);
+            //cout << pop->organisms[0]->noveltypoint->data[0][0] << endl;
+            //cout << pop->organisms[0]->fitness << endl;
             return 0;
         }
 
@@ -639,7 +660,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
     //Now create offspring one at a time, testing each offspring,
     // and replacing the worst with the new offspring if its better
     for
-    (offspring_count=0; offspring_count<NEAT::pop_size*1001; offspring_count++)
+    (offspring_count=0; offspring_count<NEAT::pop_size*EXP_LENGTH; offspring_count++)
     {
 //fix compat_threshold, so no speciation...
 //      NEAT::compat_threshold = 1000000.0;
@@ -924,6 +945,8 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
 
     sprintf(fname,"%srtgen_final",output_dir);
     //pop->print_to_file_by_species(fname);
+   Organism* o=new Organism(0.0,archive.fittest[0]->genotype,0);
+   generalization_test(mfile,o);
     delete pop;
     exit(0);
     return 0;
@@ -933,6 +956,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
 Environment* mazesimIni(Environment* tocopy,Network *net, vector< vector<float> > &dc)
 {
     double inputs[20];
+    for(int x=0;x<20;x++) inputs[x]=0.0;
     Environment *newenv= new Environment(*tocopy);
 
     //flush the neural net
@@ -956,6 +980,7 @@ Environment* mazesimIni(Environment* tocopy,Network *net, vector< vector<float> 
 double mazesimStep(Environment* newenv,Network *net,vector< vector<float> > &dc)
 {
     double inputs[20];
+    for(int x=0;x<20;x++) inputs[x]=0.0;
 
     newenv->generate_neural_inputs(inputs);
     net->load_sensors(inputs);
@@ -1482,12 +1507,13 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
     for (int i=0; i<gather.size(); i++)
         new_item->data.push_back(gather[i]);
 
-if (false)
+if (false) {
    for (int x=0;x<gather.size();x++) 
    for(int y=0;y<gather[x].size();y++)
     cout << gather[x][y];
    cout <<endl;
 
+}
     //set fitness (this is 'real' objective-based fitness, not novelty)
     new_item->fitness=fitness;
     org->fitness=fitness;
