@@ -1,5 +1,6 @@
 import glob
-c_win=22500
+#c_win=22500
+c_win=18751
 m_win=9000
 l_win=c_win
 
@@ -9,7 +10,6 @@ d="res"
 f=glob.glob("%s/*_norm*log.txt"%d)
 n=glob.glob("%s/*_nov*log.txt"%d)
 n2=glob.glob("%s/*_pnov*log.txt"%d)
-
 
 
 def read(k):
@@ -26,7 +26,7 @@ def max_arr(k):
   mx=max(z,mx)
   n.append(mx)
  print len(n)
- return n[50:1000]
+ return n[50:]
 
 def true_arr(k):
  pad=1000
@@ -40,7 +40,21 @@ def true_arr(k):
  # n+=[n[-1]]*(pad-len(n))
  return n[:pad]
 
-def avg(k,sz=600):
+
+def med(k,sz=600):
+ k=[l[:sz] for l in k if len(l)>=sz]
+ nm=len(k)
+ c=len(k[0])
+ print nm
+
+ ret=[]
+ for a in range(c):
+  nums=[k[z][a] for z in range(nm)]
+  nums.sort()
+  ret.append(nums[nm/2])
+ return ret  
+
+def avg(k,sz=1000):
  k=[l[:sz] for l in k if len(l)>=sz]
  nm=len(k)
  c=len(k[0])
@@ -57,6 +71,7 @@ nov2=[]
 
 fn=true_arr
 #fn=max_arr
+
 for k in f:
  fit.append(fn(read(k)))
 
@@ -67,10 +82,21 @@ for k in n:
 for k in n2:
  nov2.append(fn(read(k)))
 
+fit_plot=avg(fit)
+nov_plot=avg(nov)
+nov2_plot=avg(nov2)
+
+a=open("reactive.dat","w")
+for k in range(1000):
+ a.write("%d %f %f %f\n" % (k,fit_plot[k],nov_plot[k],nov2_plot[k]))
+a.close()
+
 from pylab import *
 title("Learning results")
 xlabel("Generations")
 ylabel("Success Probability")
+
+
 plot(avg(fit),'r-')
 plot(avg(nov),'g-')
 plot(avg(nov2),'k-')
