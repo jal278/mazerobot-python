@@ -1,7 +1,7 @@
 import glob
 c_win=22500
-#m_win=12000
-m_win=10501
+m_win=12000
+#m_win=10501
 l_win=c_win
 
 win=m_win
@@ -34,7 +34,7 @@ def true_arr(k):
  n=[]
  mx=0
  for z in k:
-  z=float(int(z/win))
+  z=float(float(z/win))
   mx=max(z,mx)
   n.append(mx)
  #if len(n)<pad:
@@ -71,7 +71,8 @@ nov_plot=avg(nov)
 nov2_plot=avg(nov2)
 
 a=open("reactive.dat","w")
-for k in range(1000):
+#a=open("success.dat","w")
+for k in range(0,1000):
  a.write("%d %f %f %f\n" % (k,fit_plot[k],nov_plot[k],nov2_plot[k]))
 a.close()
 
@@ -79,9 +80,9 @@ from pylab import *
 title("Learning results")
 xlabel("Generations")
 ylabel("Success Probability")
-plot(avg(fit),'r-')
-plot(avg(nov),'g-')
-plot(avg(nov2),'k-')
+plot(avg(fit)[50:],'r-')
+plot(avg(nov)[50:],'g-')
+plot(avg(nov2)[50:],'k-')
 legend( ('Fitness','Novelty (fine-grained)','Novelty (summary probabilities)'),loc='upper_left')
 
 show()

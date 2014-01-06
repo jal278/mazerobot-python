@@ -38,6 +38,8 @@ int main(int argc, char **argv) {
     SwitchArg passive_switch("","passive","passive search",false);
     cmd.add(passive_switch);
 
+SwitchArg alpsmode("","alps","ALPs-type dealie",false);
+  cmd.add(alpsmode);
     SwitchArg noveltySwitch("n","novelty","Enable novelty search",false);
     cmd.add(noveltySwitch);
 
@@ -109,6 +111,9 @@ int main(int argc, char **argv) {
     cout << "Maze: " << mazename << endl;
     cout << "Start genes: " << startgenes << endl;
     cout << "Generations: " << generations << endl;
+  if( alpsmode.getValue()) {
+   NEAT::fresh_genetic_prob=0.05;
+  }
 
     set_evaluate(evaluateSwitch.getValue());
     set_fit_measure(fit_measure.getValue());
@@ -136,6 +141,9 @@ int main(int argc, char **argv) {
     if(passive_switch.getValue()) {
         //for limited-capacity niche model
         p = maze_passive(filename,mazename,param,startgenes,noveltySwitch.getValue());
+    }
+    else if(alpsmode.getValue()) {
+ maze_alps(filename,mazename,param,startgenes,generations,noveltySwitch.getValue());
     }
     else if(!generationalSwitch.getValue())
     {
