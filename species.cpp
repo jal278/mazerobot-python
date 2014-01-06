@@ -127,6 +127,7 @@ Organism *Species::reproduce_simple(int generation, Population *pop) {
         new_genome->randomize_traits();
         baby=new Organism(0.0,new_genome, generation);
         mom=baby;
+        baby->age=-1;
     }
     else if ((randfloat()<NEAT::mutate_only_prob)||
              poolsize == 0) {
