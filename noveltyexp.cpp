@@ -20,6 +20,7 @@
 
 #include "population.h"
 #include "population_state.h"
+#include "alps.h"
 
 #define MAX_NICHES 300000
 #define GENOME_SIZE_LIMIT 300
@@ -225,7 +226,7 @@ void read_in_environments(const char* mazefile, vector<Environment*>& envLst)
         getline(listfile,filename);
         if (filename.length() == 0)
             break;
-        cout << "Reading maze: " << filename << endl;
+        //cout << "Reading maze: " << filename << endl;
         Environment* new_env = new Environment(filename.c_str());
         new_env->randomize();
         envLst.push_back(new_env);
@@ -1593,6 +1594,12 @@ population_state* create_maze_popstate(char* outputdir,const char* mazefile,int 
     return new population_state(pop,novelty,archive);
 }
 
+Population *maze_alps(char* output_dir,const char* mazefile,int param, const char *genes, int gens, bool novelty) {
+    population_state* p_state = create_maze_popstate(output_dir,mazefile,param,genes,gens,novelty);
+    
+    alps k(5,20,p_state->pop->start_genome,p_state,maze_success_processing,output_dir,gens*NEAT::pop_size);
+    k.do_alps();
+}
 Population *maze_generational(char* outputdir,const char* mazefile,int param,const char *genes, int gens,bool novelty)
 {
     char logname[100];

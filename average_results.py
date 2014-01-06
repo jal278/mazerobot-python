@@ -5,7 +5,7 @@ m_win=9000
 l_win=c_win
 
 win=l_win
-d="res"
+d="res-nospec"
 
 f=glob.glob("%s/*_norm*log.txt"%d)
 n=glob.glob("%s/*_nov*log.txt"%d)
@@ -86,9 +86,12 @@ fit_plot=avg(fit)
 nov_plot=avg(nov)
 nov2_plot=avg(nov2)
 
+#a=open("success.dat","w")
 a=open("reactive.dat","w")
 for k in range(1000):
  a.write("%d %f %f %f\n" % (k,fit_plot[k],nov_plot[k],nov2_plot[k]))
+k=999
+a.write("%d %f %f %f\n" % (k+1,fit_plot[k],nov_plot[k],nov2_plot[k]))
 a.close()
 
 from pylab import *

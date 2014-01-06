@@ -64,8 +64,11 @@ public:
         fitness_record.push_back(k);
     }
 
-    void update_layer_cnt() {
-        layer_ceiling = clayers*clayers*scale;
+    void update_layer_cnt(int k=-1) {
+        if(k==-1)
+         layer_ceiling = clayers*clayers*scale;
+        else
+         layer_ceiling = k*k*scale;
     }
 
     Organism* reproduce(population_state* from,population_state* to) {
@@ -82,10 +85,13 @@ public:
         while(added<psize) {
             Organism* baby;
 
-            if(!onlybefore &&(bef==NULL || randfloat()<0.5))
+            if(!onlybefore &&(bef==NULL || randfloat()<0.5)) {
+                //cout << "cur";
                 //baby=reproduce(r->pop->species[0],r);
                 baby=r->pop->species[0]->reproduce_simple(0,r->pop);
+            }
             else {
+                //cout << "bef";
                 //baby=reproduce(bef,r);
                 baby=bef->pop->species[0]->reproduce_simple(0,r->pop);
             }
@@ -93,12 +99,14 @@ public:
             baby->clean=false;
             evals++;
 
-            if(baby->age < r->max_age) {
+            if(baby->age <= r->max_age) {
+		//cout << "+" <<endl;
                 added++;
                 to_add.push_back(baby);
             }
             else
             {
+		//cout << "-" <<endl;
                 if(r->promote!=NULL)
                     r->promote->measure_pop.push_back(baby);
                 else {
@@ -133,6 +141,7 @@ public:
         new_pop->set_evaluator(evalf);
 
         population_state* np = new population_state(new_pop,novelty,new_arc);
+        update_layer_cnt(clayers+1);
         np->max_age=layer_ceiling;
         reproduce_alps(np,layers[clayers-1],NULL,psize,true);
         np->pop->evaluate_all();
@@ -226,14 +235,16 @@ public:
                 //create new layer, set age limit, etc
                 layers[clayers]=create_new_layer(clayers);
                 layers[clayers-1]->promote=layers[clayers];
-                if(clayers==(max_layers-1))
-                    layers[clayers]->max_age=10000000;
                 clayers++;
+                update_layer_cnt();
+                if(clayers==(max_layers))
+                    layers[clayers-1]->max_age=10000000;
+                else
+ 		    layers[clayers-1]->max_age=layer_ceiling;
                 vector<float> k;
                 age_record.push_back(k);
                 fitness_record.push_back(k);
-                update_layer_cnt();
-
+             
             }
 
             //if multiple of scale, recreate first layer from start genome

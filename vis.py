@@ -48,15 +48,18 @@ lines=[map(int,x.split(" ")) for x in a[5:]]
 
 print p1,p2,p3
 
-scene = svg_draw.Scene("test",width=450,height=450)
+scene = svg_draw.Scene("test",width=450,height=550)
 scale = 2.0
 
 
 for x in lines:
     scene.add(svg_draw.Line((x[0]*scale,x[1]*scale),(x[2]*scale,x[3]*scale),(0,0,0)))
 
-scene.add(svg_draw.Circle((p2[0]*scale,p2[1]*scale),5,(255,255,255),False))
-scene.add(svg_draw.Circle((p3[0]*scale,p3[1]*scale),3,(255,255,255),False))
+#scene.add(svg_draw.Circle((p2[0]*scale,p2[1]*scale),5,(255,255,255),False))
+#scene.add(svg_draw.Circle((p3[0]*scale,p3[1]*scale),3,(255,255,255),False))
+scene.add(svg_draw.Text((p2[0]*scale,p2[1]*scale),"B",24))
+scene.add(svg_draw.Text((p3[0]*scale,p3[1]*scale),"S",20))
+
 #cutoff=b.shape[0]
 for x in range(cutoff):
     color = 0
