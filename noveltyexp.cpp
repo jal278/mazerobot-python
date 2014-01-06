@@ -769,7 +769,7 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
             cout << offspring_count << endl;
             char fname[100];
             sprintf(fname,"%sarchive.dat",output_dir);
-            ..archive.Serialize(fname);
+            //archive.Serialize(fname);
 
             sprintf(fname,"%sfittest_%d",output_dir,offspring_count/NEAT::pop_size);
             archive.serialize_fittest(fname);
