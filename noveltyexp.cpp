@@ -1589,7 +1589,7 @@ population_state* create_maze_popstate(char* outputdir,const char* mazefile,int 
 Population *maze_alps(char* output_dir,const char* mazefile,int param, const char *genes, int gens, bool novelty) {
     population_state* p_state = create_maze_popstate(output_dir,mazefile,param,genes,gens,novelty);
     
-    alps k(5,20,p_state->pop->start_genome,p_state,maze_success_processing,output_dir,gens*NEAT::pop_size);
+    alps k(5,20,p_state->pop->start_genome,p_state,maze_success_processing,output_dir,gens*NEAT::pop_size*5);
     k.do_alps();
 }
 Population *maze_generational(char* outputdir,const char* mazefile,int param,const char *genes, int gens,bool novelty)
@@ -1737,9 +1737,9 @@ int generalized_generational_epoch(population_state* pstate,int generation,succe
     vector<Species*>::iterator curspecies;
     vector<Organism*>& measure_pop=pstate->measure_pop;
 
-    cout << "#GENOMES:" << Genome::increment_count(0) << endl;
-    cout << "#GENES:" << Gene::increment_count(0) << endl;
-    cout << "ARCHIVESIZE: " << archive.get_set_size() << endl;
+    //cout << "#GENOMES:" << Genome::increment_count(0) << endl;
+    //cout << "#GENES:" << Gene::increment_count(0) << endl;
+    //cout << "ARCHIVESIZE: " << archive.get_set_size() << endl;
 
     int evolveupdate=100;
 

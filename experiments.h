@@ -1,5 +1,6 @@
 #ifndef EXPERIMENTS_H
 #define EXPERIMENTS_H
+//#define PLOT_ON
 #include <iostream>
 #include <iomanip>
 #include <fstream>

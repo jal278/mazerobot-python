@@ -1,6 +1,6 @@
 import glob
-c_win=18751
-#c_win=22500
+#c_win=18751
+c_win=22500
 m_win=9000
 l_win=c_win
 
@@ -8,7 +8,7 @@ win=c_win
 d="res-nospec"
 
 f=glob.glob("%s/*_norm*log.txt"%d)
-n=glob.glob("%s/*_nov*log.txt"%d)
+n=glob.glob("%s/*_alps*log.txt"%d)
 n2=glob.glob("%s/*_pnov*log.txt"%d)
 
 
@@ -34,7 +34,7 @@ def true_arr(k):
  n=[]
  mx=0
  for z in k:
-  z=float(int(z/win))
+  z=float(float(z/win))
   mx=max(z,mx)
   n.append(mx)
  #if len(n)<pad:

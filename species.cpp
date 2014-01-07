@@ -77,6 +77,17 @@ double Species::estimate_average() {
 
     return average_est;
 }
+Organism *Species::reproduce_champ(int generation, Population *pop) {
+    Organism *baby;  //The new Organism
+    Organism *mom;  //The new Organism
+    rank(); //Make sure organisms are ordered by rank
+    mom=organisms[0];
+    Genome *new_genome=(mom->gnome)->duplicate(generation);
+    baby=new Organism(0.0,new_genome,generation); 
+    baby->age=mom->age+1;
+    pop->evaluate_organism(baby);
+    return baby; 
+}
 
 Organism *Species::reproduce_simple(int generation, Population *pop) {
     int count=generation; //This will assign genome id's according to the generation

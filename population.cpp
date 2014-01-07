@@ -353,7 +353,7 @@ void Population::print_avg_age() {
     avgage=age/cnt;
     double avgsize=gsize/cnt;
     cout << "AvgAGE:" << mx << " " << age/cnt << endl;
-    cout << "AvgSIZE:" << mgsize << " "<< avgsize << endl;
+    //cout << "AvgSIZE:" << mgsize << " "<< avgsize << endl;
 }
 void Population::evaluate_organism(Organism* org) {
     data_record* newrec=new data_record();
