@@ -79,12 +79,17 @@ public:
 
     void reproduce_alps(population_state* r,population_state* bef,population_state* aft,int psize,bool onlybefore=false) {
         int added=0;
+        bool first=true;
         r->pop->setclean(false);
         vector<Organism*> to_add;
-
         while(added<psize) {
             Organism* baby;
-
+            if(first) {
+             if(onlybefore) baby=bef->pop->species[0]->reproduce_champ(0,r->pop);
+             else baby=r->pop->species[0]->reproduce_champ(0,r->pop);
+             first=false;
+            } else {  
+              
             if(!onlybefore &&(bef==NULL || randfloat()<0.5)) {
                 //cout << "cur";
                 //baby=reproduce(r->pop->species[0],r);
@@ -95,7 +100,7 @@ public:
                 //baby=reproduce(bef,r);
                 baby=bef->pop->species[0]->reproduce_simple(0,r->pop);
             }
-
+            }
             baby->clean=false;
             evals++;
 
@@ -201,7 +206,7 @@ public:
                 reproduce_layer(i);
                 //layers[i]->archive->increment_age(layers[i]->max_age);
                 cout << "Layer " << i << ":" << layers[i]->mc_met << endl;
-                cout << "evals: " << evals << endl;
+                cout << "evals: " << evals << " f: " << layers[i]->best_fitness << endl;
             }
             (*logfile) << evals << " " << best_fitness << endl;
 
