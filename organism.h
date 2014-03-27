@@ -27,6 +27,7 @@ public:
     double error;  //Used just for reporting purposes
     bool destroy;
     bool winner;  //Win marker (if needed for a particular task)
+    Organism* parent;
     Network *net;  //The Organism's phenotype
     Genome *gnome; //The Organism's genotype
     Species *species;  //The Organism's Species

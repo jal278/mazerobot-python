@@ -1637,7 +1637,10 @@ Organism* Population::remove_worst() {
 
         //Remove the organism from its species and the population
         orgs_species->remove_org(org_to_kill);  //Remove from species
-        delete org_to_kill;  //Delete the organism itself
+
+	//JOELNOTE:memoryleak
+        //delete org_to_kill;  //Delete the organism itself
+
         organisms.erase(deadorg); //Remove from population list
 
         //Did the species become empty?

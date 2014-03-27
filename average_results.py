@@ -1,15 +1,19 @@
 import glob
-#c_win=18751
-c_win=22500
+c_win=18751
+#c_win=22500
 m_win=9000
 l_win=c_win
+ofn="reactive.dat"
+#ofn="success.dat"
 
 win=c_win
-d="res-nospec"
+d="res_hard"
 
-f=glob.glob("%s/*_norm*log.txt"%d)
-n=glob.glob("%s/*_alps*log.txt"%d)
-n2=glob.glob("%s/*_pnov*log.txt"%d)
+f=glob.glob("%s-nospec/*_norm*log.txt"%d)
+fhm=glob.glob("%s-nospec/*_hinorm*log.txt"%d)
+fs=glob.glob("%s/*_norm*log.txt"%d)
+a=glob.glob("%s-nospec/*_falps*log.txt"%d)
+n=glob.glob("%s-nospec/*_pnov*log.txt"%d)
 
 
 
@@ -34,7 +38,7 @@ def true_arr(k):
  n=[]
  mx=0
  for z in k:
-  z=float(float(z/win))
+  z=float(int(z/win))
   mx=max(z,mx)
   n.append(mx)
  #if len(n)<pad:
@@ -53,29 +57,39 @@ def avg(k,sz=1000):
  return ret  
   
 fit=[]
+fithm=[]
+fits=[]
+alps=[]
 nov=[]
-nov2=[]
 
 fn=true_arr
 #fn=max_arr
 for k in f:
  fit.append(fn(read(k)))
 
+for k in fs:
+ fits.append(fn(read(k)))
+
+for k in fhm:
+ fithm.append(fn(read(k)))
+
 for k in n:
  nov.append(fn(read(k)))
 
-for k in n2:
- nov2.append(fn(read(k)))
+for k in a:
+ alps.append(fn(read(k)))
 
 fit_plot=avg(fit)
+fits_plot=avg(fits)
+fithm_plot=avg(fithm)
 nov_plot=avg(nov)
-nov2_plot=avg(nov2)
+alps_plot=avg(alps)
 
-a=open("reactive.dat","w")
+a=open(ofn,"w")
 for k in range(1000):
- a.write("%d %f %f %f\n" % (k,fit_plot[k],nov_plot[k],nov2_plot[k]))
+ a.write("%d %f %f %f %f %f\n" % (k,fit_plot[k],fits_plot[k],fithm_plot[k],nov_plot[k],alps_plot[k]))
 k=999
-a.write("%d %f %f %f\n" % (k+1,fit_plot[k],nov_plot[k],nov2_plot[k]))
+a.write("%d %f %f %f %f %f\n" % (k+1,fit_plot[k],fits_plot[k],fithm_plot[k],nov_plot[k],alps_plot[k]))
 a.close()
 
 from pylab import *
@@ -83,8 +97,10 @@ title("Learning results")
 xlabel("Generations")
 ylabel("Success Probability")
 plot(avg(fit),'r-')
-plot(avg(nov),'g-')
-plot(avg(nov2),'k-')
-legend( ('Fitness','Novelty (fine-grained)','Novelty (summary probabilities)'),loc='upper_left')
+plot(avg(fits),'g-')
+plot(avg(nov),'k-')
+plot(avg(alps),'b-')
+plot(avg(fithm),'y-')
+legend( ('Fitness','FItS','Nov','alps','himut'),loc='upper_left')
 
 show()

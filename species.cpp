@@ -512,7 +512,7 @@ Organism *Species::reproduce_one(int generation, Population *pop,std::vector<Spe
         }
 
         baby=new Organism(0.0,new_genome,generation);
-
+        baby->parent=mom;
     }
 
     //Otherwise we should mate

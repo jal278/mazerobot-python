@@ -877,6 +877,22 @@ int maze_novelty_realtime_loop(Population *pop,bool novelty) {
 
         //update fittest list
         archive.update_fittest(new_org);
+
+
+	if(new_org->noveltypoint->fitness >= 22500) {
+	Organism* org =new_org;
+        int cnt=0;
+	while(org!=NULL) {
+	cout << cnt << " " << org->noveltypoint->fitness << ": ";
+	for(int i=0;i<org->noveltypoint->data[0].size();i++) 
+	  cout << org->noveltypoint->data[0][i] << " ";
+          cout << endl;
+	 org=org->parent;
+	 cnt+=1;
+	}
+	exit(0);
+	}
+
 #ifdef DEBUG_OUTPUT
         cout << "Fitness: " << new_org->fitness << endl;
         cout << "Novelty: " << new_org->noveltypoint->novelty << endl;
