@@ -1,3 +1,27 @@
+disp=True
+SZX=SZY=400
+screen = None
+
+if disp:
+ import pygame
+ from pygame.locals import *
+ pygame.init()
+ pygame.display.set_caption('Viz')
+ screen =pygame.display.set_mode((SZX,SZY))
+ 
+ background = pygame.Surface(screen.get_size())
+ background = background.convert()
+ background.fill((250, 250, 250))
+
+def render(pop):
+ global screen,background
+ screen.blit(background, (0, 0))
+ for robot in pop:
+  x=mazepy.feature_detector.endx(robot)*SZX
+  y=mazepy.feature_detector.endy(robot)*SZY
+  rect=(int(x),int(y),5,5)
+  pygame.draw.rect(screen,(255,0,0),rect,0)
+ pygame.display.flip()
 
 from entropy import *
 if(__name__=='__main__'):
@@ -24,13 +48,15 @@ if(__name__=='__main__'):
 
  evals=psize
  child=None
- while not solved:
+ max_evals=1000000
+ while evals < max_evals: #not solved:
   keys=population.keys()
 
   evals+=1
   if(evals%1000==0):
    print evals,len(keys),calc_population_entropy(whole_population)
-
+   if(disp):
+    render(whole_population)
   pniche=random.choice(keys)
   parent=random.choice(population[pniche])
 

@@ -2,7 +2,8 @@ import math
 import mazepy
 import random
 from collections import defaultdict
-grid_sz=20
+
+grid_sz=40 #was 20
 
 #a function to map a robot's behavior into a grid of niches
 def map_into_grid(robot):
@@ -67,8 +68,6 @@ def calc_evolvability_entropy(robot,mutations):
 
 def calc_evolvability_cnt(robot,mutations):
  return len(mutations_to_grids(robot,mutations).keys())
-
-
 
 def optimize_evolvability(robot=None):
  evo_fnc = calc_evolvability_entropy
