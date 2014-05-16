@@ -5,7 +5,7 @@ def map_into_grid(robot,grid_sz):
  x=mazepy.feature_detector.endx(robot)
  y=mazepy.feature_detector.endy(robot)
  x_grid=int(x*(grid_sz-1))
- y_grid=int(x*(grid_sz-1))
+ y_grid=int(y*(grid_sz-1))
  return (x_grid,y_grid)
 
 #function to calculate evolvability via PLoS paper metric
