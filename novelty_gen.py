@@ -1,6 +1,11 @@
 disp=True
 SZX=SZY=400
+NS_K = 20
+ELITE = 3
 screen = None
+
+def fitness(robot):
+ return -mazepy.feature_detector.end_goal(robot)
 
 if disp:
  import pygame
@@ -33,51 +38,62 @@ if(__name__=='__main__'):
 
  robot=None
 
- population=defaultdict(list)
- whole_population=[]
- psize=1500
+ behavior_density=defaultdict(int)
+ population=[]
+ psize=500
 
  for k in range(psize):
   robot=mazepy.mazenav()
   robot.init_rand()
   robot.mutate()
   robot.map()
-  population[map_into_grid(robot)].append(robot)
-  whole_population.append(robot)
+  behavior_density[map_into_grid(robot)]+=1
+  population.append(robot)
+
  solved=False
 
  evals=psize
- child=None
+
  max_evals=1000000
+ archive=[]
+
  while evals < max_evals: #not solved:
-  keys=population.keys()
+  
+  for art in population:
+   art.dists=[((art.behavior-x.behavior)**2).sum() for x in population]
+   arch_dists=[((art.behavior-x.behavior)**2).sum() for x in archive]
+   art.dists+=arch_dists
+   art.dists.sort()
+   art.fitness = sum(art.dists[:NS_K])
+   art.raw_fitness = art.fitness
+ 
+  population.sort(key=lambda x:x.fitness,reverse=True)
+  new_population=[]
+  child=None
+  for x in xrange(psize):
+   if x<ELITE:
+    child=population[x].copy()
+   else: 
+    parents=random.sample(population,3)
+    parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
+    child=parent.copy()
+    child.mutate()
 
-  evals+=1
-  if(evals%1000==0):
-   print evals,len(keys),calc_population_entropy(whole_population)
-   if(disp):
-    render(whole_population)
-  pniche=random.choice(keys)
-  parent=random.choice(population[pniche])
+   child.map() 
+   behavior_density[map_into_grid(child)]+=1
 
-  child=parent.copy()
-  child.mutate()
-  child.map()
+   new_population.append(child)
+   if(child.solution()):
+    solved=True
+  archive.append(random.choice(population))
+  evals+=psize
+  keys=behavior_density.keys()
+  print evals,len(keys),calc_population_entropy(population)
+  if(disp):
+   render(population)
 
-  if(child.solution()):
-   solved=True
+  population=new_population
 
-  population[map_into_grid(child)].append(child)
-  whole_population.append(child)
-
-  niche=most_populus(population)
-
-  to_kill=random.choice(population[niche])
-  population[niche].remove(to_kill)
-  whole_population.remove(to_kill)
-  del to_kill
-  if(len(population[niche])==0):
-   population.pop(niche)
 
  #run genome in the maze simulator
 

@@ -1,6 +1,7 @@
 import math
 import mazepy
 import random
+import numpy
 from collections import defaultdict
 
 grid_sz=40 #was 20
@@ -11,6 +12,7 @@ def map_into_grid(robot):
  y=mazepy.feature_detector.endy(robot)
  x_grid=int(x*(grid_sz-1))
  y_grid=int(y*(grid_sz-1))
+ robot.behavior=numpy.array([x,y])
  return (x_grid,y_grid)
 
 def distr_entropy(grids,samples):

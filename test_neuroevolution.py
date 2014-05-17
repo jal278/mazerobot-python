@@ -6,7 +6,7 @@ def fitness(robot):
  return -mazepy.feature_detector.end_goal(robot)
 
 #initialize maze stuff with "medium maze" 
-mazepy.mazenav.initmaze("medium_maze_list.txt")
+mazepy.mazenav.initmaze("hard_maze_list.txt")
 mazepy.mazenav.random_seed()
 
 #create initial genome
@@ -43,6 +43,7 @@ while not robot.solution():
  iterations+=1
 
  if(iterations%1000 == 0):
+  robot.save("solution_brain")
   print "iterations:%d" % iterations
 
 print "Maze solved"
