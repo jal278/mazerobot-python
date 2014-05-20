@@ -80,6 +80,7 @@ if(__name__=='__main__'):
   robot.init_rand()
   robot.mutate()
   robot.map()
+  robot.parent=None
   behavior_density[map_into_grid(robot)]+=1
   population.append(robot)
 
@@ -103,10 +104,12 @@ if(__name__=='__main__'):
   parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
   child=parent.copy()
   child.mutate()
+  child.parent=parent
   child.map()
 
   population.append(child)
   behavior_density[map_into_grid(child)]+=1
+
   if(evals%25!=0):
    eval_ind(child,population,tree) 
   else:

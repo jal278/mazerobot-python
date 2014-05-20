@@ -4,7 +4,7 @@ import random
 import numpy
 from collections import defaultdict
 
-grid_sz=40 #was 20
+grid_sz=20
 
 #a function to map a robot's behavior into a grid of niches
 def map_into_grid(robot):
@@ -61,6 +61,10 @@ def mutations_to_grids(robot,mutations):
  #print x1,x2
 
  return grids
+
+def complexity(pop):
+ comps=[k.complexity() for k in pop]
+ return float(sum(comps))/len(comps)
 
 def calc_population_entropy(pop):
  return distr_entropy(population_to_grids(pop),len(pop))

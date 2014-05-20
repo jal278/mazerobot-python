@@ -1,6 +1,17 @@
-disp=True
+import sys
+import random
+
+extinction=True
+seed=-1
+if(len(sys.argv)>1):
+ extinction = sys.argv[1]=='e'
+ seed = int(sys.argv[2])
+
+disp=False
 SZX=SZY=400
 screen = None
+
+ 
 
 if disp:
  import pygame
@@ -24,18 +35,32 @@ def render(pop):
  pygame.display.flip()
 
 from entropy import *
+
+def killbot(to_kill,niche,population,whole_population):
+  population[niche].remove(to_kill)
+  whole_population.remove(to_kill)
+  del to_kill
+  if(len(population[niche])==0):
+   population.pop(niche)
+
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
  mazepy.mazenav.initmaze("hard_maze_list.txt")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
- mazepy.mazenav.random_seed()
+
+ if(seed==-1):
+  mazepy.mazenav.random_seed()
+ else:
+  random.seed(seed)
+  mazepy.mazenav.seed(seed)
 
  robot=None
 
  population=defaultdict(list)
  whole_population=[]
- psize=1500
+ psize=2000
+ repop=0
 
  for k in range(psize):
   robot=mazepy.mazenav()
@@ -48,13 +73,14 @@ if(__name__=='__main__'):
 
  evals=psize
  child=None
- max_evals=1000000
+ max_evals=5000000
+
  while evals < max_evals: #not solved:
   keys=population.keys()
 
   evals+=1
   if(evals%1000==0):
-   print evals,len(keys),calc_population_entropy(whole_population)
+   print evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population)
    if(disp):
     render(whole_population)
   pniche=random.choice(keys)
@@ -69,22 +95,40 @@ if(__name__=='__main__'):
 
   population[map_into_grid(child)].append(child)
   whole_population.append(child)
+  if(repop==0):
+   niche=most_populus(population)
+   to_kill=random.choice(population[niche])
+   killbot(to_kill,niche,population,whole_population)
+  else:
+   repop-=1
 
-  niche=most_populus(population)
+  if extinction and evals%(50000-1)==0:
+   xc=random.randint(0,grid_sz)
+   yc=random.randint(0,grid_sz)
+   rad=grid_sz/2
+   print xc,yc
+   niches_to_kill=[]
 
-  to_kill=random.choice(population[niche])
-  population[niche].remove(to_kill)
-  whole_population.remove(to_kill)
-  del to_kill
-  if(len(population[niche])==0):
-   population.pop(niche)
-
+   for x in range(grid_sz):
+    for y in range(grid_sz):
+     if ((x-xc)**2+(y-yc)**2) < rad**2:
+      niches_to_kill.append((x,y))
+ 
+   repop=0
+   for niche in niches_to_kill:
+    orgs=population[niche][:]
+    repop+=len(orgs)
+    for x in orgs:
+     killbot(x,niche,population,whole_population)
+    if niche in population:
+     population.pop(niche)
+   
  #run genome in the maze simulator
+ print "EVO-CALC"
+ for org in random.sample(whole_population,1000): 
+  print "evolvability:", evo_fnc(org,1000)
 
- #calculate evolvability
- print child.solution()
- print "evolvability:", evo_fnc(child,1000)
-
+ """
  robot=mazepy.mazenav()
  robot.init_rand()
  robot.mutate()
@@ -92,3 +136,4 @@ if(__name__=='__main__'):
  print "evolvability:", evo_fnc(robot,1000)
  
  optimize_evolvability(child)
+ """
