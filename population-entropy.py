@@ -11,8 +11,6 @@ disp=False
 SZX=SZY=400
 screen = None
 
- 
-
 if disp:
  import pygame
  from pygame.locals import *
@@ -44,16 +42,21 @@ def killbot(to_kill,niche,population,whole_population):
    population.pop(niche)
 
 if(__name__=='__main__'):
- evo_fnc = calc_evolvability_entropy
+ #evo_fnc = calc_evolvability_entropy
+ evo_fnc = calc_evolvability_cnt
  #initialize maze stuff with "medium maze" 
+ print "step0"
+
  mazepy.mazenav.initmaze("hard_maze_list.txt")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
-
+ print "step1"
  if(seed==-1):
   mazepy.mazenav.random_seed()
  else:
   random.seed(seed)
   mazepy.mazenav.seed(seed)
+ print "step2"
+
 
  robot=None
 
@@ -73,7 +76,8 @@ if(__name__=='__main__'):
 
  evals=psize
  child=None
- max_evals=5000000
+ max_evals=2000000
+ print "step3"
 
  while evals < max_evals: #not solved:
   keys=population.keys()
@@ -83,6 +87,7 @@ if(__name__=='__main__'):
    print evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population)
    if(disp):
     render(whole_population)
+   sys.stdout.flush()
   pniche=random.choice(keys)
   parent=random.choice(population[pniche])
 
@@ -102,16 +107,18 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and evals%(50000-1)==0:
+  if extinction and evals%(40001)==0:
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
-   rad=grid_sz/2
+   rad=grid_sz/3
    print xc,yc
    niches_to_kill=[]
 
    for x in range(grid_sz):
     for y in range(grid_sz):
-     if ((x-xc)**2+(y-yc)**2) < rad**2:
+     dx=abs(x-xc)
+     dy=abs(y-yc)
+     if min(dx,grid_sz-dx)**2+min(dy,grid_sz-dy) < rad**2:
       niches_to_kill.append((x,y))
  
    repop=0
