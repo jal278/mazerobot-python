@@ -1,6 +1,8 @@
 import sys
 import random
 
+test=False
+
 calc_evo=True
 extinction=True
 seed=-1
@@ -13,6 +15,10 @@ if(len(sys.argv)>1):
 disp=False
 SZX=SZY=400
 screen = None
+
+if test:
+ calc_evo=False
+ disp=True
 
 if disp:
  import pygame
@@ -61,7 +67,7 @@ if(__name__=='__main__'):
   random.seed(seed)
   mazepy.mazenav.seed(seed)
 
-
+ eflag=False
  robot=None
 
  population=defaultdict(list)
@@ -80,11 +86,13 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=1000001
+ max_evals=1500001
 
  while evals < max_evals: #not solved:
   keys=population.keys()
-
+  if(disp and eflag):
+   render(whole_population)
+   eflag=False
   if(evals%1000==0):
    quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population)
    print quant
@@ -112,7 +120,8 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and evals>30000 and (evals-1)%(10000)==0:
+  if extinction and evals>30000 and (evals-1)%(20000)==0:
+   eflag=True
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
    rad=grid_sz*0.45

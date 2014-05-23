@@ -79,6 +79,12 @@ class mazenav {
   void map() {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
+
+   if(nov_item->collisions!=0) {
+    nov_item->end_x=-1.0; 
+    nov_item->end_y=-1.0; 
+   }
+ 
    rendered=true;
   }
 
