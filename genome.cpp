@@ -298,6 +298,8 @@ Genome::Genome(int new_id,int i, int o, int n,int nmax, bool r, double linkprob)
 
     //Create a dummy trait (this is for future expansion of the system)
     newtrait=new Trait(1,0,0,0,0,0,0,0,0,0);
+    newtrait=new Trait(2,0,0,0,0,0,0,0,0,0);
+    newtrait=new Trait(3,0,0,0,0,0,0,0,0,0);
     traits.push_back(newtrait);
 
     //Build the input nodes

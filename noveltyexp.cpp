@@ -1233,9 +1233,9 @@ void mutate_genome(Genome* new_genome,bool traits)
         }
 
 
-        if(randfloat()<0.05)
+        if(randfloat()<0.5)
             new_genome->mutate_random_trait();
-        if(randfloat()<0.05)
+        if(randfloat()<0.2)
             new_genome->mutate_link_trait(1);
     }
 

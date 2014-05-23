@@ -8,7 +8,7 @@ outfile="out"
 if(len(sys.argv)>1):
  extinction = sys.argv[1]=='e'
  seed = int(sys.argv[2])
- outname= sys.argv[3]
+ outfile= sys.argv[3]
 
 disp=False
 SZX=SZY=400
@@ -80,7 +80,7 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=2000000
+ max_evals=1000001
 
  while evals < max_evals: #not solved:
   keys=population.keys()
@@ -112,7 +112,7 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and evals>30000 and (evals+1)%(10000)==0:
+  if extinction and evals>30000 and (evals-1)%(10000)==0:
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
    rad=grid_sz*0.45
@@ -137,6 +137,7 @@ if(__name__=='__main__'):
      killbot(x,niche,population,whole_population)
     if niche in population:
      population.pop(niche)   
+
   if(calc_evo and evals%250000==0):
    #run genome in the maze simulator
    print "EVO-CALC"
@@ -145,6 +146,7 @@ if(__name__=='__main__'):
     print "evolvability:", evo
     evo_file.write(str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
+   evo_file.flush()
   evals+=1
 
  """

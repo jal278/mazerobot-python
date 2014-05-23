@@ -8,7 +8,7 @@ outfile="out"
 if(len(sys.argv)>1):
  extinction = sys.argv[1]=='e'
  seed = int(sys.argv[2])
- outname= sys.argv[3]
+ outfile = sys.argv[3]
 
 disp=False
 SZX=SZY=400

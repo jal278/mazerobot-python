@@ -1,5 +1,5 @@
-trait_param_mut_prob 0.5 
-trait_mutation_power 1.0
+trait_param_mut_prob 0.2 
+trait_mutation_power 0.2
 linktrait_mut_sig 1.0
 nodetrait_mut_sig 0.5
 weight_mut_power 2.5
@@ -40,5 +40,5 @@ speciation 1
 archive 1
 localcompetition 0
 production 0
-mutation_control 0
+mutation_control 1
 evolvability 0
