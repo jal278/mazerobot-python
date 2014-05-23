@@ -1,7 +1,7 @@
 import sys
 import random
 
-test=False
+test=True
 
 calc_evo=True
 extinction=True
@@ -135,17 +135,21 @@ if(__name__=='__main__'):
      niches_to_kill.append((x,y))
 
    survivors=random.sample(population.keys(),10)
-   for k in survivors:
-     niches_to_kill.remove(k)
+   survivor_orgs=[random.choice(population[x]) for x in survivors]
+
+   #for k in survivors:
+   #  niches_to_kill.remove(k)
 
    repop=0
    for niche in niches_to_kill:
     orgs=population[niche][:]
     repop+=len(orgs)
     for x in orgs:
-     killbot(x,niche,population,whole_population)
-    if niche in population:
-     population.pop(niche)   
+      if x not in survivor_orgs:
+       killbot(x,niche,population,whole_population)
+    if niche in population and niche not in survivors:
+     population.pop(niche)
+
 
   if(calc_evo and evals%250000==0):
    #run genome in the maze simulator
