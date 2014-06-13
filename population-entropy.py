@@ -1,6 +1,7 @@
 import sys
 import random
 
+test=True
 calc_evo=True
 extinction=True
 seed=-1
@@ -13,6 +14,9 @@ if(len(sys.argv)>1):
 disp=False
 SZX=SZY=400
 screen = None
+if test:
+ calc_evo=False
+ disp=True
 
 if disp:
  import pygame
@@ -141,6 +145,7 @@ if(__name__=='__main__'):
     print "evolvability:", evo
     evo_file.write(str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
+   evo_file.flush()
   evals+=1
 
  """

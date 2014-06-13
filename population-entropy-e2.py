@@ -7,10 +7,12 @@ calc_evo=True
 extinction=True
 seed=-1
 outfile="out"
+nefile="neat.ne"
 if(len(sys.argv)>1):
  extinction = sys.argv[1]=='e'
  seed = int(sys.argv[2])
  outfile= sys.argv[3]
+ nefile=sys.argv[4]
 
 disp=False
 SZX=SZY=400
@@ -44,6 +46,7 @@ def render(pop):
 from entropy import *
 evo_fnc = calc_evolvability_cnt
 
+
 def killbot(to_kill,niche,population,whole_population):
   population[niche].remove(to_kill)
   whole_population.remove(to_kill)
@@ -59,7 +62,7 @@ if(__name__=='__main__'):
  #evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
 
- mazepy.mazenav.initmaze("hard_maze_list.txt")
+ mazepy.mazenav.initmaze("hard_maze_list.txt",nefile)
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
  if(seed==-1):
   mazepy.mazenav.random_seed()
@@ -88,13 +91,16 @@ if(__name__=='__main__'):
  child=None
  max_evals=1500001
 
+ best_fit=0.0
+ best_evo=0
+ best_evo_org=None
  while evals < max_evals: #not solved:
   keys=population.keys()
   if(disp and eflag):
    render(whole_population)
    eflag=False
   if(evals%1000==0):
-   quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population)
+   quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population),best_fit
    print quant
    log_file.write(str(quant)+"\n")
 
@@ -108,6 +114,8 @@ if(__name__=='__main__'):
   child.mutate()
   child.map()
 
+  if(fitness(child)>best_fit):
+   best_fit=fitness(child)
   if(child.solution()):
    solved=True
 
@@ -156,11 +164,17 @@ if(__name__=='__main__'):
    print "EVO-CALC"
    for org in random.sample(whole_population,200): 
     evo=evo_fnc(org,1000)
+    if evo>best_evo:
+     best_evo=evo
+     best_evo_org=org.copy()
     print "evolvability:", evo
     evo_file.write(str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
    evo_file.flush()
   evals+=1
+ 
+ best_evo_org.save(outfile+"_bestevo.dat") 
+ best_fit_org.save(outfile+"_bestfit.dat") 
 
  """
  robot=mazepy.mazenav()

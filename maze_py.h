@@ -45,8 +45,8 @@ class mazenav {
    g = Genome::new_Genome_load(fname);
   }
 
-  static void initmaze(const char* mazefile) {
-   initialize_maze(mazefile);
+  static void initmaze(const char* mazefile,const char* ne) {
+   initialize_maze(mazefile,ne);
   }
 
   void init_rand() {

@@ -1296,8 +1296,8 @@ void evolvability(Organism* org,char* fn,int* di,double* ev,bool recall) {
 }
 
 
-void initialize_maze(const char* mazefile) {
-NEAT::load_neat_params("neat.ne",true);
+void initialize_maze(const char* mazefile,const char* nefile) {
+NEAT::load_neat_params(nefile,true);
 read_in_environments(mazefile,envList);
 float minx,miny,maxx,maxy;
 envList[0]->get_range(minx,miny,maxx,maxy);

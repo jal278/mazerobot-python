@@ -40,5 +40,5 @@ speciation 1
 archive 1
 localcompetition 0
 production 0
-mutation_control 0
+mutation_control 1
 evolvability 0

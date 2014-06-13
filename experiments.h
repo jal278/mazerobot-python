@@ -23,7 +23,7 @@
 using namespace std;
 using namespace NEAT;
 
-void initialize_maze(const char* mazefile);
+void initialize_maze(const char* mazefile,const char* ne);
 void evolvability(Organism* org,char* fn,int *a=NULL,double* b=NULL,bool recall=false);
 void enumerate_behaviors(const char* name,long long parm,const char* outname,int count);
 void mutate_genome(Genome* new_genome,bool traits=false);

@@ -35,7 +35,7 @@ public:
   int complexity();
 
   void map();
-  static void initmaze(const char* mazefile);
+  static void initmaze(const char* mazefile,const char* nefile);
   void mutate();
   bool isvalid();
   void clear();
