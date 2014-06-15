@@ -91,7 +91,8 @@ if(__name__=='__main__'):
  child=None
  max_evals=1500001
 
- best_fit=0.0
+ best_fit=-1000000.0
+ best_fit_org=None
  best_evo=0
  best_evo_org=None
  while evals < max_evals: #not solved:
