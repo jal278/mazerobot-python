@@ -7,7 +7,7 @@ from collections import defaultdict
 grid_sz=20
 
 def fitness(robot):
- return -mazepy.feature_detector.end_goal(robot)
+ return -mazepy.feature_detector.closest_goal(robot)
 
 #a function to map a robot's behavior into a grid of niches
 def map_into_grid(robot):

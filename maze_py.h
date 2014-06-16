@@ -83,6 +83,8 @@ class mazenav {
    if(nov_item->collisions!=0) {
     nov_item->end_x=-1.0; 
     nov_item->end_y=-1.0; 
+    nov_item->closest_goal_dist = nov_item->max_dist;
+    nov_item->end_goal_dist = nov_item->max_dist;
    }
  
    rendered=true;
