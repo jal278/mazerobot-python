@@ -435,6 +435,8 @@ Genome::Genome(int num_in,int num_out,int num_hidden,int type) {
 
     //Create a dummy trait (this is for future expansion of the system)
     newtrait=new Trait(1,0,0,0,0,0,0,0,0,0);
+    newtrait=new Trait(2,0,0,0,0,0,0,0,0,0);
+    newtrait=new Trait(3,0,0,0,0,0,0,0,0,0);
     traits.push_back(newtrait);
 
     //Adjust hidden number
