@@ -85,6 +85,7 @@ class mazenav {
     nov_item->end_y=-1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;
     nov_item->end_goal_dist = nov_item->max_dist;
+    nov_item->solution=false;
    }
  
    rendered=true;

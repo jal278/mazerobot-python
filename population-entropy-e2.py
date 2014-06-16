@@ -175,6 +175,8 @@ if(__name__=='__main__'):
  
  best_evo_org.save(outfile+"_bestevo.dat") 
  best_fit_org.save(outfile+"_bestfit.dat") 
+ if solved:
+  best_fit_org.save(outfile+"_solution.dat")
 
  """
  robot=mazepy.mazenav()
