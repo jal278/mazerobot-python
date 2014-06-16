@@ -1,7 +1,7 @@
 import sys
 import random
 
-test=True
+test=False
 
 calc_evo=True
 extinction=True
@@ -91,7 +91,8 @@ if(__name__=='__main__'):
  child=None
  max_evals=1500001
 
- best_fit=0.0
+ best_fit=-1000000.0
+ best_fit_org=None
  best_evo=0
  best_evo_org=None
  while evals < max_evals: #not solved:
@@ -116,6 +117,7 @@ if(__name__=='__main__'):
 
   if(fitness(child)>best_fit):
    best_fit=fitness(child)
+   best_fit_org=child.copy()
   if(child.solution()):
    solved=True
 
@@ -128,7 +130,7 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and evals>30000 and (evals-1)%(20000)==0:
+  if extinction and evals>30000 and (evals-1)%(40000)==0:
    eflag=True
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
