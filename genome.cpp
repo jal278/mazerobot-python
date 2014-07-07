@@ -298,7 +298,9 @@ Genome::Genome(int new_id,int i, int o, int n,int nmax, bool r, double linkprob)
 
     //Create a dummy trait (this is for future expansion of the system)
     newtrait=new Trait(1,0,0,0,0,0,0,0,0,0);
+    traits.push_back(newtrait);
     newtrait=new Trait(2,0,0,0,0,0,0,0,0,0);
+    traits.push_back(newtrait);
     newtrait=new Trait(3,0,0,0,0,0,0,0,0,0);
     traits.push_back(newtrait);
 
@@ -434,9 +436,11 @@ Genome::Genome(int num_in,int num_out,int num_hidden,int type) {
     genome_id=0;
 
     //Create a dummy trait (this is for future expansion of the system)
-    newtrait=new Trait(1,0,0,0,0,0,0,0,0,0);
-    newtrait=new Trait(2,0,0,0,0,0,0,0,0,0);
-    newtrait=new Trait(3,0,0,0,0,0,0,0,0,0);
+    newtrait=new Trait(1,0.5,0,0,0,0,0,0,0,0);
+    traits.push_back(newtrait);
+    newtrait=new Trait(2,0.5,0,0,0,0,0,0,0,0);
+    traits.push_back(newtrait);
+    newtrait=new Trait(3,0.5,0,0,0,0,0,0,0,0);
     traits.push_back(newtrait);
 
     //Adjust hidden number
@@ -1260,7 +1264,7 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
             if(trait_modulated) {
                 Trait* ptr_trait=((*curgene)->lnk)->linktrait;
                 //Trait* ptr_trait=traits[0];//((*curgene)->lnk)->linktrait;
-                double p1=ptr_trait->params[0];
+                double p1=ptr_trait->params[0]*2.0;
                 double p2=ptr_trait->params[1];
                 double modulation=p1;
                 double skip_prob=p2;
