@@ -8,11 +8,19 @@ extinction=True
 seed=-1
 outfile="out"
 nefile="neat.ne"
+
+#was 40000
+interval=40000
+
 if(len(sys.argv)>1):
  extinction = sys.argv[1]=='e'
  seed = int(sys.argv[2])
  outfile= sys.argv[3]
  nefile=sys.argv[4]
+ if(len(sys.argv)>5):
+  interval=int(sys.argv[5])
+
+
 
 disp=False
 SZX=SZY=400
@@ -130,7 +138,7 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and evals>30000 and (evals-1)%(40000)==0:
+  if extinction and (evals-1)%(interval)==0:
    eflag=True
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
