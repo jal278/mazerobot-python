@@ -1268,7 +1268,7 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
                 double p2=ptr_trait->params[1];
                 double modulation=p1;
                 double skip_prob=p2;
-                if (randfloat()>skip_prob) skip=true;
+                if (skip_prob>randfloat()) skip=true;
                 randnum*=modulation;
             }
 
