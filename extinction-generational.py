@@ -4,7 +4,7 @@ import operator
 
 test=False
 
-calc_evo=False
+calc_evo=True
 extinction=True
 seed=-1
 outfile="out"
@@ -114,9 +114,10 @@ if(__name__=='__main__'):
    eflag=False
   if(gen%1==0):
    quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population),best_fit,gen
-   print quant
+   if(gen%100==0):
+    print quant
    log_file.write(str(quant)+"\n")
-
+   log_file.flush()
    if(disp):
     render(whole_population)
    sys.stdout.flush()
@@ -173,7 +174,6 @@ if(__name__=='__main__'):
 
   whole_population=new_whole_pop
   population=new_population
-  gen+=1
 
   """ 
   if(repop==0):
@@ -197,10 +197,17 @@ if(__name__=='__main__'):
      population.pop(niche)
   """
 
-  if(calc_evo and gen%500==0):
+  if(calc_evo and gen%1000==0):
    #run genome in the maze simulator
    print "EVO-CALC"
-   for org in random.sample(whole_population,200): 
+   samp=whole_population
+
+   try: 
+    samp=random.sample(whole_population,250)
+   except:
+    pass
+
+   for org in samp: 
     evo=evo_fnc(org,1000)
     if evo>best_evo:
      best_evo=evo
@@ -209,6 +216,8 @@ if(__name__=='__main__'):
     evo_file.write(str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
    evo_file.flush()
+
+  gen+=1
  
  best_evo_org.save(outfile+"_bestevo.dat") 
  best_fit_org.save(outfile+"_bestfit.dat") 
