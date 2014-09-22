@@ -2,7 +2,7 @@ import sys
 import random
 import operator
 
-test=False
+test=True
 
 calc_evo=True
 extinction=True
@@ -147,7 +147,12 @@ if(__name__=='__main__'):
       new_whole_pop.append(child)
 
   for k in whole_population:
-   del k
+   niche=map_into_grid(k)
+   if(len(new_population[niche])<niche_capacity):
+    new_population[niche].append(k)
+    new_whole_pop.append(k)
+   else:
+    del k
 
 
   if extinction and gen>10 and (gen-1)%(interval)==0:
