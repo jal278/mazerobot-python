@@ -218,7 +218,7 @@ if(__name__=='__main__'):
      best_evo=evo
      best_evo_org=org.copy()
     print "evolvability:", evo
-    evo_file.write(str(evals)+" "+str(evo)+"\n")
+    evo_file.write(str(gen)+" "+str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
    evo_file.flush()
 
