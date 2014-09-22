@@ -47,6 +47,7 @@ public:
 
   float get_x(); 
   float get_y();
+  bool viable();
   bool solution();
   ~mazenav();
 

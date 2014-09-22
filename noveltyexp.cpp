@@ -1218,8 +1218,10 @@ void mutate_genome(Genome* new_genome,bool traits)
 {
     Network* net_analogue;
     double mut_power=NEAT::weight_mut_power;
-				double inno=0;
-				int id=0;
+    static double inno=1000;
+    static int id=1000;
+
+
     new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
     if(traits) {
         vector<Innovation*> innos;

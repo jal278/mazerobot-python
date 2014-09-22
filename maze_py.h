@@ -81,12 +81,14 @@ class mazenav {
    nov_item = maze_novelty_map(o);
 
    if(nov_item->collisions!=0) {
-    nov_item->end_x=-1.0; 
-    nov_item->end_y=-1.0; 
+    nov_item->end_x= -1.0; 
+    nov_item->end_y= -1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;
     nov_item->end_goal_dist = nov_item->max_dist;
+    nov_item->viable=false;
     nov_item->solution=false;
    }
+   else nov_item->viable=true;
  
    rendered=true;
   }
@@ -103,6 +105,10 @@ class mazenav {
   float get_y() {
     return nov_item->data[0][1];
   }
+  bool viable() {
+   return nov_item->viable;
+  }
+
   bool solution() {
     return nov_item->solution;
   } 

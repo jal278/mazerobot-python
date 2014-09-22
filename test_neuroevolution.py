@@ -6,7 +6,7 @@ def fitness(robot):
  return -mazepy.feature_detector.end_goal(robot)
 
 #initialize maze stuff with "medium maze" 
-mazepy.mazenav.initmaze("hard_maze_list.txt")
+mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
 mazepy.mazenav.random_seed()
 
 #create initial genome
