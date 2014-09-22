@@ -2,7 +2,7 @@ import sys
 import random
 import operator
 
-test=True
+test=False
 
 calc_evo=True
 extinction=True
