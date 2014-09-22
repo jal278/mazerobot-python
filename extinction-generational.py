@@ -99,7 +99,7 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=2500 #3000001
+ max_evals=5001 #3000001
 
  best_fit=-1000000.0
  best_fit_org=None
@@ -197,7 +197,7 @@ if(__name__=='__main__'):
      population.pop(niche)
   """
 
-  if(calc_evo and evals%250000==0):
+  if(calc_evo and gen%500==0):
    #run genome in the maze simulator
    print "EVO-CALC"
    for org in random.sample(whole_population,200): 
