@@ -97,7 +97,7 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=1500001
+ max_evals=3000001
 
  best_fit=-1000000.0
  best_fit_org=None
@@ -138,7 +138,7 @@ if(__name__=='__main__'):
   else:
    repop-=1
 
-  if extinction and (evals-1)%(interval)==0:
+  if extinction and evals>10 and (evals-1)%(interval)==0:
    eflag=True
    xc=random.randint(0,grid_sz)
    yc=random.randint(0,grid_sz)
