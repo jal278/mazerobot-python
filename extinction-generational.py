@@ -2,9 +2,9 @@ import sys
 import random
 import operator
 
-test=True
+test=False
 
-calc_evo=True
+calc_evo=False
 extinction=True
 seed=-1
 outfile="out"
