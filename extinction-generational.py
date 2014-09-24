@@ -2,10 +2,10 @@ import sys
 import random
 import operator
 
-test=False
+test=True
 
 calc_evo=True
-extinction=True
+extinction=False
 seed=-1
 outfile="out"
 nefile="neat.ne"
@@ -87,13 +87,18 @@ if(__name__=='__main__'):
  psize=1
  repop=0
 
- for k in range(psize):
+ #for k in range(psize):
+ while True:
+  print "trying.."
   robot=mazepy.mazenav()
   robot.init_rand()
   robot.mutate()
   robot.map()
-  population[map_into_grid(robot)].append(robot)
-  whole_population.append(robot)
+  if(robot.viable()):
+   population[map_into_grid(robot)].append(robot)
+   whole_population.append(robot)
+   break
+  del robot
 
  solved=False
 
@@ -134,6 +139,10 @@ if(__name__=='__main__'):
      child.mutate()
      child.map()
      evals+=1
+
+     if (not child.viable()):
+      del child
+      continue
 
      if(fitness(child)>best_fit):
       best_fit=fitness(child)

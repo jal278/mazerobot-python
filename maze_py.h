@@ -24,7 +24,7 @@ class mazenav {
 	rendered=false;
   }
   int complexity() {
-   return g->genes.size();
+   return o->net->linkcount(); //g->genes.size();
   }
 
   double distance(mazenav* other) {

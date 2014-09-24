@@ -1234,6 +1234,10 @@ void mutate_genome(Genome* new_genome,bool traits)
             delete net_analogue;
         }
 
+        if (randfloat()<NEAT::mutate_add_link_prob) {
+                new_genome->mutate_gene_disable();
+        }
+
 
         if(randfloat()<0.5)
             new_genome->mutate_random_trait();
