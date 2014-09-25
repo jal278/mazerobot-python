@@ -2,14 +2,13 @@ import sys
 import random
 import operator
 
-test=True
+test=False
 
 calc_evo=True
 extinction=False
 seed=-1
 outfile="out"
 nefile="neat.ne"
-
 
 #was 40000
 interval=40000
@@ -111,6 +110,7 @@ if(__name__=='__main__'):
  best_evo=0
  best_evo_org=None
  gen=0
+
  while gen < max_evals: #not solved:
   keys=population.keys()
 
@@ -127,12 +127,18 @@ if(__name__=='__main__'):
     render(whole_population)
    sys.stdout.flush()
  
+  elitist=True 
+
   new_population=defaultdict(list)
   new_whole_pop=[]
+ 
+  if elitist:
+   new_population=population
+   new_whole_pop=whole_population
 
   for pniche in keys:
    for parent in population[pniche]:
-    for offspring in range(2):
+    for offspring in range(1):
      #pniche=random.choice(keys)
      #parent=random.choice(population[pniche])
      child=parent.copy()
@@ -155,13 +161,14 @@ if(__name__=='__main__'):
       new_population[off_niche].append(child)
       new_whole_pop.append(child)
 
-  for k in whole_population:
-   niche=map_into_grid(k)
-   if(len(new_population[niche])<niche_capacity):
-    new_population[niche].append(k)
-    new_whole_pop.append(k)
-   else:
-    del k
+  if not elitist:
+   for k in whole_population:
+    niche=map_into_grid(k)
+    if(len(new_population[niche])<niche_capacity):
+     new_population[niche].append(k)
+     new_whole_pop.append(k)
+    else:
+     del k
 
 
   if extinction and gen>10 and (gen-1)%(interval)==0:
@@ -211,7 +218,7 @@ if(__name__=='__main__'):
      population.pop(niche)
   """
 
-  if(calc_evo and gen%1000==0):
+  if(calc_evo and gen%500==0):
    #run genome in the maze simulator
    print "EVO-CALC"
    samp=whole_population
