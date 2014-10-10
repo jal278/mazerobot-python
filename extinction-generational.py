@@ -1,8 +1,9 @@
 import sys
 import random
 import operator
+import os.path
+test=os.path.isfile("visualize")
 
-test=False
 
 calc_evo=True
 extinction=False
@@ -103,7 +104,7 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=10001 #3000001
+ max_evals=5001 #3000001
 
  best_fit=-1000000.0
  best_fit_org=None
