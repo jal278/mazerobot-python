@@ -110,7 +110,7 @@ if(__name__=='__main__'):
  best_evo=0
  best_evo_org=None
  gen=0
-
+ succ=0
  while gen < max_evals: #not solved:
   keys=population.keys()
 
@@ -118,7 +118,7 @@ if(__name__=='__main__'):
    render(whole_population)
    eflag=False
   if(gen%1==0):
-   quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population),best_fit,gen
+   quant=evals,len(keys),calc_population_entropy(whole_population),complexity(whole_population),best_fit,gen,succ/(evals+1.0)
    if(gen%100==0):
     print quant
    log_file.write(str(quant)+"\n")
@@ -138,28 +138,41 @@ if(__name__=='__main__'):
 
   for pniche in keys:
    for parent in population[pniche]:
-    for offspring in range(1):
-     #pniche=random.choice(keys)
-     #parent=random.choice(population[pniche])
-     child=parent.copy()
-     child.mutate()
-     child.map()
-     evals+=1
+    for offspring in range(2):
+     good_offspring=False
+     while not good_offspring:
+      child=parent.copy()
+      if random.random()<0.8:
+       child.mutate()
+      child.map()
 
-     if (not child.viable()):
-      del child
-      continue
+      evals+=1
 
-     if(fitness(child)>best_fit):
-      best_fit=fitness(child)
-      best_fit_org=child.copy()
-     if(child.solution()):
-      solved=True
+      #if (not child.viable()):
+      # del child
+      # continue
 
-     off_niche = map_into_grid(child)
-     if(len(new_population[off_niche])<niche_capacity):
-      new_population[off_niche].append(child)
-      new_whole_pop.append(child)
+      if(fitness(child)>best_fit):
+       best_fit=fitness(child)
+       best_fit_org=child.copy()
+      if(child.solution()):
+       solved=True
+
+      off_niche = map_into_grid(child)
+
+      if(offspring==0):
+       good_offspring=True
+       succ+=1
+      else:
+       if off_niche != pniche:
+        del child
+        continue
+       good_offspring=True 
+       succ+=1
+
+      if(len(new_population[off_niche])<niche_capacity):
+       new_population[off_niche].append(child)
+       new_whole_pop.append(child)
 
   if not elitist:
    for k in whole_population:
