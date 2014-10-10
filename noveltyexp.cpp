@@ -1234,9 +1234,9 @@ void mutate_genome(Genome* new_genome,bool traits)
             delete net_analogue;
         }
 
-     //   if (randfloat()<NEAT::mutate_add_link_prob) {
-     //           new_genome->mutate_gene_disable();
-     //   }
+        if (randfloat()<NEAT::mutate_add_link_prob) {
+                new_genome->mutate_gene_disable();
+        }
 
 
         if(randfloat()<0.5)
@@ -1381,7 +1381,7 @@ noveltyitem* maze_novelty_map(Organism *org,data_record* record)
 
 
     if(org->gnome->genes.size() > GENOME_SIZE_LIMIT) {
-        cout << "GENOME SIZE LIMIT HIT" <<endl;
+        //cout << "GENOME SIZE LIMIT HIT" <<endl;
         new_item->viable=false;
         new_item->secondary=-1000000;
         //destroy_organism(org);

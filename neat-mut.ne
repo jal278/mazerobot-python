@@ -2,7 +2,7 @@ trait_param_mut_prob 0.2
 trait_mutation_power 0.2
 linktrait_mut_sig 1.0
 nodetrait_mut_sig 0.5
-weight_mut_power 1.0
+weight_mut_power 2.5
 recur_prob 0.15
 disjoint_coeff 1.0
 excess_coeff 1.0

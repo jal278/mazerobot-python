@@ -103,7 +103,7 @@ if(__name__=='__main__'):
 
  evals=0 #psize
  child=None
- max_evals=5001 #3000001
+ max_evals=10001 #3000001
 
  best_fit=-1000000.0
  best_fit_org=None
@@ -127,7 +127,7 @@ if(__name__=='__main__'):
     render(whole_population)
    sys.stdout.flush()
  
-  elitist=True 
+  elitist=False
 
   new_population=defaultdict(list)
   new_whole_pop=[]
@@ -246,7 +246,7 @@ if(__name__=='__main__'):
     if evo>best_evo:
      best_evo=evo
      best_evo_org=org.copy()
-    print "evolvability:", evo
+    #print "evolvability:", evo
     evo_file.write(str(gen)+" "+str(evals)+" "+str(evo)+"\n")
    print "EVO-CALC END"
    evo_file.flush()
