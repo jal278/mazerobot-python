@@ -55,9 +55,9 @@ def eval_ind(art,population,tree):
    arch_dists=[((art.behavior-x.behavior)**2).sum() for x in archive]
    art.dists+=arch_dists
    art.dists.sort()
-   #art.raw_fitness = art.fitness
+   art.raw_fitness = art.fitness
    art.fitness = sum(art.dists[:NS_K])
-
+   art.fitness = fitness(art)
 def eval_ind_k(art,tree):
  nearest,indexes=tree.query(art.behavior,NS_K)
  art.fitness=sum(nearest)
@@ -65,7 +65,7 @@ def eval_ind_k(art,tree):
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
- mazepy.mazenav.initmaze("hard_maze_list.txt")
+ mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
  mazepy.mazenav.random_seed()
 
@@ -73,7 +73,7 @@ if(__name__=='__main__'):
 
  behavior_density=defaultdict(int)
  population=[]
- psize=1000
+ psize=250
 
  for k in range(psize):
   robot=mazepy.mazenav()
@@ -91,7 +91,7 @@ if(__name__=='__main__'):
 
  max_evals=1000000
 
- while evals < max_evals: #not solved:
+ while evals < max_evals and not solved:
   #population.sort(key=lambda x:x.fitness,reverse=True)
   evals+=1
   if(evals%1000==0):
