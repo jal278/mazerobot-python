@@ -167,18 +167,25 @@ if(__name__=='__main__'):
   if (k.solved):
    n_solutions.append(k.solution.get_behavior())
    print z,"solved"
-
+  else:
+   print z,"failed"
+ 
   k=ss_evolve(do_fit=True,eval_budget=50000)
   k.evolve()
   if (k.solved):
    f_solutions.append(k.solution.get_behavior())
    print z,"solved"
+  else:
+   print z,"failed"
+
   if z%10==0:
    print "Saving...",z
    a=open("fit_solutions.dat","w")
    pickle.dump(f_solutions,a)
+   a.close()
    a=open("nov_solutions.dat","w")
    pickle.dump(n_solutions,a)
+   a.close()
  
  
   
