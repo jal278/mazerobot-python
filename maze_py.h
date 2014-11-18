@@ -5,7 +5,7 @@
 class mazenav {
  public:
 
-  static void seed(int sd) {
+ static void seed(int sd) {
   srand ( sd );
  }
 
@@ -17,7 +17,9 @@ class mazenav {
   Organism *o;
   noveltyitem* nov_item;
   bool rendered;
-  mazenav() {
+  bool collision;
+  mazenav(bool coll=false) {
+        collision=coll;
 	g=NULL;
 	o=NULL;
 	nov_item=NULL;
@@ -32,7 +34,7 @@ class mazenav {
   }
 
   mazenav* copy() {
-    mazenav* ret = new mazenav();
+    mazenav* ret = new mazenav(collision);
     ret->g = g->duplicate(0);
     return ret;
   }
@@ -79,8 +81,8 @@ class mazenav {
   void map() {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
-
-   if(nov_item->collisions!=0) {
+ 
+   if(collision && nov_item->collisions!=0) {
     nov_item->end_x= -1.0; 
     nov_item->end_y= -1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;
@@ -98,6 +100,12 @@ class mazenav {
   }
 
   void clear() { return; }
+
+  vector<float> get_behavior() {
+   cout << nov_item->data[0].size() << endl;
+   vector<float> ret(nov_item->data[0]);
+   return ret;
+  }
 
   float get_x() { 
     return nov_item->data[0][0];

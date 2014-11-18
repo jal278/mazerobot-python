@@ -1,5 +1,7 @@
+%include "std_vector.i"
 %include "carrays.i"
 %array_class(float,floatArray);
+
 
 %newobject *::copy;
 %module mazepy
@@ -7,6 +9,10 @@
 #include "maze_py.h"
 %}
 
+namespace std {
+ %template(vectorf) vector<float>;
+};
+using namespace std;
 
 class feature_detector {
 public:
@@ -29,11 +35,11 @@ public:
 
  static void seed(int sd);
  static void random_seed();
- mazenav();
+ mazenav(bool coll=false);
 
   mazenav* copy();
   int complexity();
-
+  vector<float> get_behavior();
   void map();
   static void initmaze(const char* mazefile,const char* nefile);
   void mutate();

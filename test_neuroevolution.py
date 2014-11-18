@@ -19,6 +19,9 @@ robot.mutate()
 #run genome in the maze simulator
 robot.map()
 
+blah=robot.get_behavior()
+print blah
+asdf
 #current fitness set to how fit our first dude is
 cur_fitness=fitness(robot)
 

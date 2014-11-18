@@ -69,6 +69,35 @@ except AttributeError:
     _newclass = 0
 
 
+class SwigPyIterator(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, SwigPyIterator, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, SwigPyIterator, name)
+    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined - class is abstract")
+    __repr__ = _swig_repr
+    __swig_destroy__ = _mazepy.delete_SwigPyIterator
+    __del__ = lambda self : None;
+    def value(self): return _mazepy.SwigPyIterator_value(self)
+    def incr(self, n=1): return _mazepy.SwigPyIterator_incr(self, n)
+    def decr(self, n=1): return _mazepy.SwigPyIterator_decr(self, n)
+    def distance(self, *args): return _mazepy.SwigPyIterator_distance(self, *args)
+    def equal(self, *args): return _mazepy.SwigPyIterator_equal(self, *args)
+    def copy(self): return _mazepy.SwigPyIterator_copy(self)
+    def next(self): return _mazepy.SwigPyIterator_next(self)
+    def __next__(self): return _mazepy.SwigPyIterator___next__(self)
+    def previous(self): return _mazepy.SwigPyIterator_previous(self)
+    def advance(self, *args): return _mazepy.SwigPyIterator_advance(self, *args)
+    def __eq__(self, *args): return _mazepy.SwigPyIterator___eq__(self, *args)
+    def __ne__(self, *args): return _mazepy.SwigPyIterator___ne__(self, *args)
+    def __iadd__(self, *args): return _mazepy.SwigPyIterator___iadd__(self, *args)
+    def __isub__(self, *args): return _mazepy.SwigPyIterator___isub__(self, *args)
+    def __add__(self, *args): return _mazepy.SwigPyIterator___add__(self, *args)
+    def __sub__(self, *args): return _mazepy.SwigPyIterator___sub__(self, *args)
+    def __iter__(self): return self
+SwigPyIterator_swigregister = _mazepy.SwigPyIterator_swigregister
+SwigPyIterator_swigregister(SwigPyIterator)
+
 class floatArray(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, floatArray, name, value)
@@ -92,6 +121,53 @@ floatArray_swigregister(floatArray)
 def floatArray_frompointer(*args):
   return _mazepy.floatArray_frompointer(*args)
 floatArray_frompointer = _mazepy.floatArray_frompointer
+
+class vectorf(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, vectorf, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, vectorf, name)
+    __repr__ = _swig_repr
+    def iterator(self): return _mazepy.vectorf_iterator(self)
+    def __iter__(self): return self.iterator()
+    def __nonzero__(self): return _mazepy.vectorf___nonzero__(self)
+    def __bool__(self): return _mazepy.vectorf___bool__(self)
+    def __len__(self): return _mazepy.vectorf___len__(self)
+    def pop(self): return _mazepy.vectorf_pop(self)
+    def __getslice__(self, *args): return _mazepy.vectorf___getslice__(self, *args)
+    def __setslice__(self, *args): return _mazepy.vectorf___setslice__(self, *args)
+    def __delslice__(self, *args): return _mazepy.vectorf___delslice__(self, *args)
+    def __delitem__(self, *args): return _mazepy.vectorf___delitem__(self, *args)
+    def __getitem__(self, *args): return _mazepy.vectorf___getitem__(self, *args)
+    def __setitem__(self, *args): return _mazepy.vectorf___setitem__(self, *args)
+    def append(self, *args): return _mazepy.vectorf_append(self, *args)
+    def empty(self): return _mazepy.vectorf_empty(self)
+    def size(self): return _mazepy.vectorf_size(self)
+    def clear(self): return _mazepy.vectorf_clear(self)
+    def swap(self, *args): return _mazepy.vectorf_swap(self, *args)
+    def get_allocator(self): return _mazepy.vectorf_get_allocator(self)
+    def begin(self): return _mazepy.vectorf_begin(self)
+    def end(self): return _mazepy.vectorf_end(self)
+    def rbegin(self): return _mazepy.vectorf_rbegin(self)
+    def rend(self): return _mazepy.vectorf_rend(self)
+    def pop_back(self): return _mazepy.vectorf_pop_back(self)
+    def erase(self, *args): return _mazepy.vectorf_erase(self, *args)
+    def __init__(self, *args): 
+        this = _mazepy.new_vectorf(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    def push_back(self, *args): return _mazepy.vectorf_push_back(self, *args)
+    def front(self): return _mazepy.vectorf_front(self)
+    def back(self): return _mazepy.vectorf_back(self)
+    def assign(self, *args): return _mazepy.vectorf_assign(self, *args)
+    def resize(self, *args): return _mazepy.vectorf_resize(self, *args)
+    def insert(self, *args): return _mazepy.vectorf_insert(self, *args)
+    def reserve(self, *args): return _mazepy.vectorf_reserve(self, *args)
+    def capacity(self): return _mazepy.vectorf_capacity(self)
+    __swig_destroy__ = _mazepy.delete_vectorf
+    __del__ = lambda self : None;
+vectorf_swigregister = _mazepy.vectorf_swigregister
+vectorf_swigregister(vectorf)
 
 class feature_detector(_object):
     __swig_setmethods__ = {}
@@ -185,12 +261,13 @@ class mazenav(_object):
     if _newclass:seed = staticmethod(_mazepy.mazenav_seed)
     __swig_getmethods__["random_seed"] = lambda x: _mazepy.mazenav_random_seed
     if _newclass:random_seed = staticmethod(_mazepy.mazenav_random_seed)
-    def __init__(self): 
-        this = _mazepy.new_mazenav()
+    def __init__(self, coll=False): 
+        this = _mazepy.new_mazenav(coll)
         try: self.this.append(this)
         except: self.this = this
     def copy(self): return _mazepy.mazenav_copy(self)
     def complexity(self): return _mazepy.mazenav_complexity(self)
+    def get_behavior(self): return _mazepy.mazenav_get_behavior(self)
     def map(self): return _mazepy.mazenav_map(self)
     __swig_getmethods__["initmaze"] = lambda x: _mazepy.mazenav_initmaze
     if _newclass:initmaze = staticmethod(_mazepy.mazenav_initmaze)

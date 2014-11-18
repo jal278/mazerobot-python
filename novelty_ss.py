@@ -1,13 +1,120 @@
+import cPickle as pickle
 from scipy.spatial import cKDTree as kd
+collision=False
 disp=True
 SZX=SZY=400
 NS_K = 20
 ELITE = 3
 screen = None
-archive=[]
 
-def fitness(robot):
+def fitness_end(robot):
  return -mazepy.feature_detector.end_goal(robot)
+
+def exploration_measure(evolve):
+ pts=numpy.vstack([k.behavior for k in evolve.population])
+ num=pts.shape[0]
+ tot=0.0
+ for k in range(pts.shape[0]):
+  dists=((pts-pts[k])**2).sum(1)
+  dists.sort()
+  tot+= dists[:num].sum()
+ #tot/=pts.shape[0]
+ return tot
+
+
+class ss_evolve:
+ def __init__(self,eval_budget=5000,arc=None,pop=None,do_fit=False): 
+  self.do_fitness=do_fit
+  self.archive=[]
+  self.highest_fitness = -10000
+  if arc!=None:
+   self.archive=[k.copy() for k in arc]
+
+  self.population=[]
+  if pop!=None:
+   self.population=[k.copy() for k in pop]
+
+  self.behavior_density=defaultdict(int)
+  self.psize=250
+  self.solution=None
+  for k in range(self.psize):
+   robot=mazepy.mazenav(collision)
+   robot.init_rand()
+   robot.mutate()
+   robot.map()
+   robot.parent=None
+   self.behavior_density[map_into_grid(robot)]+=1
+   self.population.append(robot)
+  self.eval_pop()
+  self.solved=False
+  self.evals=self.psize
+  self.max_evals=eval_budget
+ 
+
+ def eval_pop(self):
+  if not self.do_fitness:
+   data=numpy.vstack([k.behavior for k in self.population+self.archive])
+   self.tree=kd(data)
+
+  for art in self.population:
+   self.eval_ind_k(art)
+
+ def eval_ind(self,art):
+   self.eval_ind_k(art)
+   return
+   art.dists=[((art.behavior-x.behavior)**2).sum() for x in population]
+   arch_dists=[((art.behavior-x.behavior)**2).sum() for x in archive]
+   art.dists+=arch_dists
+   art.dists.sort()
+
+ def eval_ind_k(self,art):
+  raw_fitness = fitness_end(art)
+  if raw_fitness > self.highest_fitness:
+   self.highest_fitness=raw_fitness
+
+  if (self.do_fitness):
+    art.fitness = raw_fitness
+  else:  
+    nearest,indexes=self.tree.query(art.behavior,NS_K)
+    art.fitness=sum(nearest)
+
+ def evolve(self):
+  while self.evals < self.max_evals and not self.solved:
+   #population.sort(key=lambda x:x.fitness,reverse=True)
+   self.evals+=1
+   if(self.evals%1000==0):
+    keys=self.behavior_density.keys()
+    print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
+   if(disp):
+    render(self.population,self.behavior_density)
+ 
+   t_size=30
+   parents=random.sample(self.population,t_size)
+   parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
+   child=parent.copy()
+   child.mutate()
+   child.parent=parent
+   child.map()
+
+   self.population.append(child)
+   self.behavior_density[map_into_grid(child)]+=1
+
+   if(self.evals%50!=0):
+    self.eval_ind(child) 
+   else:
+    self.eval_pop()
+
+   if(child.solution()):
+     self.solved=True
+     self.solution=child
+   if(random.random()<0.01):
+    self.archive.append(child)
+
+   to_kill=random.sample(self.population,t_size)
+   to_kill=reduce(lambda x,y:x if x.fitness<y.fitness else y,parents)
+   self.population.remove(to_kill)
+   del to_kill
+  return self.solved
 
 if disp:
  import pygame
@@ -41,27 +148,6 @@ def render(pop,bd=None):
 
 from entropy import *
 
-def eval_pop(population):
-  data=numpy.vstack([k.behavior for k in population+archive])
-  tree=kd(data)  
-  for art in population:
-   eval_ind_k(art,tree)
-  return tree 
-
-def eval_ind(art,population,tree):
-   eval_ind_k(art,tree)
-   return
-   art.dists=[((art.behavior-x.behavior)**2).sum() for x in population]
-   arch_dists=[((art.behavior-x.behavior)**2).sum() for x in archive]
-   art.dists+=arch_dists
-   art.dists.sort()
-   art.raw_fitness = art.fitness
-   art.fitness = sum(art.dists[:NS_K])
-   art.fitness = fitness(art)
-def eval_ind_k(art,tree):
- nearest,indexes=tree.query(art.behavior,NS_K)
- art.fitness=sum(nearest)
-
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
@@ -71,71 +157,28 @@ if(__name__=='__main__'):
 
  robot=None
 
- behavior_density=defaultdict(int)
- population=[]
- psize=250
 
- for k in range(psize):
-  robot=mazepy.mazenav()
-  robot.init_rand()
-  robot.mutate()
-  robot.map()
-  robot.parent=None
-  behavior_density[map_into_grid(robot)]+=1
-  population.append(robot)
+ n_solutions=[]
+ f_solutions=[]
+ trials=101
+ for z in range(trials):
+  k=ss_evolve(do_fit=False,eval_budget=50000)
+  k.evolve()
+  if (k.solved):
+   n_solutions.append(k.solution.get_behavior())
+   print z,"solved"
 
- tree=eval_pop(population)
- solved=False
-
- evals=psize
-
- max_evals=1000000
-
- while evals < max_evals and not solved:
-  #population.sort(key=lambda x:x.fitness,reverse=True)
-  evals+=1
-  if(evals%1000==0):
-   keys=behavior_density.keys()
-   print evals,len(keys),calc_population_entropy(population)
-   if(disp):
-    render(population,behavior_density)
+  k=ss_evolve(do_fit=True,eval_budget=50000)
+  k.evolve()
+  if (k.solved):
+   f_solutions.append(k.solution.get_behavior())
+   print z,"solved"
+  if z%10==0:
+   print "Saving...",z
+   a=open("fit_solutions.dat","w")
+   pickle.dump(f_solutions,a)
+   a=open("nov_solutions.dat","w")
+   pickle.dump(n_solutions,a)
  
-  parents=random.sample(population,3)
-  parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
-  child=parent.copy()
-  child.mutate()
-  child.parent=parent
-  child.map()
-
-  population.append(child)
-  behavior_density[map_into_grid(child)]+=1
-
-  if(evals%25!=0):
-   eval_ind(child,population,tree) 
-  else:
-   eval_pop(population)
-
-  if(child.solution()):
-    solved=True
-  if(random.random()<0.01):
-   archive.append(child)
-
-  to_kill=random.sample(population,3)
-  to_kill=reduce(lambda x,y:x if x.fitness<y.fitness else y,parents)
-  population.remove(to_kill)
-  del to_kill
-
-
- #run genome in the maze simulator
-
- #calculate evolvability
- print child.solution()
- print "evolvability:", evo_fnc(child,1000)
-
- robot=mazepy.mazenav()
- robot.init_rand()
- robot.mutate()
- robot.map()
- print "evolvability:", evo_fnc(robot,1000)
  
- optimize_evolvability(child)
+  
