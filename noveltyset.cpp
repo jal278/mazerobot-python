@@ -39,6 +39,15 @@ noveltyitem::noveltyitem(const noveltyitem& item)
             temp.push_back(item.data[i][j]);
         data.push_back(temp);
     }
+
+    minx=item.minx;
+    miny=item.miny;
+    maxx=item.maxx;
+    maxy=item.maxy;
+
+ 
+    end_x=item.end_x;
+    end_y=item.end_y;
 }
 
 //merge two populations together according to novelty

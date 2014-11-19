@@ -35,6 +35,8 @@ class mazenav {
 
   mazenav* copy() {
     mazenav* ret = new mazenav(collision);
+    if(nov_item!=NULL) 
+     ret->nov_item= new noveltyitem( *nov_item);
     ret->g = g->duplicate(0);
     return ret;
   }

@@ -1,6 +1,6 @@
 import cPickle as pickle
 from scipy.spatial import cKDTree as kd
-collision=False
+collision=True
 disp=True
 SZX=SZY=400
 NS_K = 20
@@ -11,8 +11,21 @@ def fitness_end(robot):
  return -mazepy.feature_detector.end_goal(robot)
 
 def exploration_measure(evolve):
+ lrng=0.0
+ brng=1.0
+
  pts=numpy.vstack([k.behavior for k in evolve.population])
- num=pts.shape[0]
+ nsamp=5000
+ samples=numpy.random.uniform(lrng,brng,(nsamp,pts.shape[1]))
+ tot=0.0
+ for k in range(samples.shape[0]):
+  dists=((pts-samples[k])**2) #.sum(0)
+  tot+=dists.sum(1).min()
+ return -tot
+
+def exploration_measure1(evolve):
+ pts=numpy.vstack([k.behavior for k in evolve.population])
+ num=40 #pts.shape[0]
  tot=0.0
  for k in range(pts.shape[0]):
   dists=((pts-pts[k])**2).sum(1)
@@ -23,31 +36,45 @@ def exploration_measure(evolve):
 
 
 class ss_evolve:
- def __init__(self,eval_budget=5000,arc=None,pop=None,do_fit=False): 
+ def __init__(self,eval_budget=5000,do_fit=False,copy=None): 
   self.do_fitness=do_fit
   self.archive=[]
+  self.population=[]
   self.highest_fitness = -10000
+  arc=None
+  pop=None
+  
+  if copy!=None:
+   arc=copy.archive
+   pop=copy.population
+   print "copy engaged"
+
   if arc!=None:
    self.archive=[k.copy() for k in arc]
+   [map_into_grid(k) for k in self.archive]
 
-  self.population=[]
   if pop!=None:
    self.population=[k.copy() for k in pop]
+   [map_into_grid(k) for k in self.population]
 
   self.behavior_density=defaultdict(int)
   self.psize=250
   self.solution=None
-  for k in range(self.psize):
-   robot=mazepy.mazenav(collision)
-   robot.init_rand()
-   robot.mutate()
-   robot.map()
-   robot.parent=None
-   self.behavior_density[map_into_grid(robot)]+=1
-   self.population.append(robot)
+  self.evals=0
+
+  if copy==None:
+   print "regen.."
+   for k in range(self.psize):
+    robot=mazepy.mazenav(collision)
+    robot.init_rand()
+    robot.mutate()
+    robot.map()
+    robot.parent=None
+    self.behavior_density[map_into_grid(robot)]+=1
+    self.population.append(robot)
+   self.evals=self.psize
   self.eval_pop()
   self.solved=False
-  self.evals=self.psize
   self.max_evals=eval_budget
  
 
@@ -84,11 +111,11 @@ class ss_evolve:
    self.evals+=1
    if(self.evals%1000==0):
     keys=self.behavior_density.keys()
-    print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
+    #print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
    if(disp):
-    render(self.population,self.behavior_density)
+    render(self.population,self.archive,self.behavior_density)
  
-   t_size=30
+   t_size=20
    parents=random.sample(self.population,t_size)
    parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
    child=parent.copy()
@@ -127,7 +154,7 @@ if disp:
  background = background.convert()
  background.fill((250, 250, 250))
 
-def render(pop,bd=None):
+def render(pop,arc,bd=None):
  global screen,background
  screen.blit(background, (0, 0))
 
@@ -144,6 +171,12 @@ def render(pop,bd=None):
   y=mazepy.feature_detector.endy(robot)*SZY
   rect=(int(x),int(y),5,5)
   pygame.draw.rect(screen,(255,0,0),rect,0)
+
+ for robot in arc:
+  x=mazepy.feature_detector.endx(robot)*SZX
+  y=mazepy.feature_detector.endy(robot)*SZY
+  rect=(int(x),int(y),5,5)
+  pygame.draw.rect(screen,(0,0,255),rect,0)
  pygame.display.flip()
 
 from entropy import *
@@ -151,13 +184,39 @@ from entropy import *
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
- mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+ #mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+ mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
  mazepy.mazenav.random_seed()
 
  robot=None
 
+ budget=5000
+ branches=10
 
+ evolves=[ss_evolve(do_fit=False,eval_budget=budget) for z in range(branches)]
+
+ it=0
+ while True:
+  print it
+  best_exp=-100000
+  best_mod=None
+  for k in evolves:
+   k.evolve()
+   k.explore=exploration_measure(k) 
+   print k.explore
+   if k.explore>best_exp:
+    best_exp=k.explore
+    best_mod=k
+  print "before.."
+  evolves=[ss_evolve(do_fit=False,eval_budget=budget,copy=best_mod) for k in evolves]
+  print "after.."
+  it+=1 
+   
+
+
+
+def solution_accum():
  n_solutions=[]
  f_solutions=[]
  trials=101
