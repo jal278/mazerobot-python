@@ -265,7 +265,7 @@ class mazenav(_object):
         this = _mazepy.new_mazenav(coll)
         try: self.this.append(this)
         except: self.this = this
-    def copy(self): return _mazepy.mazenav_copy(self)
+    def copy(self, z=False): return _mazepy.mazenav_copy(self, z)
     def complexity(self): return _mazepy.mazenav_complexity(self)
     def get_behavior(self): return _mazepy.mazenav_get_behavior(self)
     def map(self): return _mazepy.mazenav_map(self)

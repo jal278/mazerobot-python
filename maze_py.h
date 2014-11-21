@@ -33,9 +33,9 @@ class mazenav {
    return g->compatibility(other->g);
   }
 
-  mazenav* copy() {
+  mazenav* copy(bool all=false) {
     mazenav* ret = new mazenav(collision);
-    if(nov_item!=NULL) 
+    if(nov_item!=NULL && all) 
      ret->nov_item= new noveltyitem( *nov_item);
     ret->g = g->duplicate(0);
     return ret;
@@ -84,7 +84,7 @@ class mazenav {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
  
-   if(collision && nov_item->collisions!=0) {
+   if(collision && nov_item->collisions>50) {
     nov_item->end_x= -1.0; 
     nov_item->end_y= -1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;
@@ -140,9 +140,17 @@ static float scale(float x,float min,float max) {
  return (x-min)/(max-min);
 }
 static float scalex(float x,mazenav* mn) {
+if (mn->nov_item->maxx < mn->nov_item->maxy)
+{
+mn->nov_item->maxx=mn->nov_item->maxy;
+}
  return scale(x,mn->nov_item->minx,mn->nov_item->maxx);
 }
 static float scaley(float x,mazenav* mn) {
+if (mn->nov_item->maxy < mn->nov_item->maxx)
+{
+mn->nov_item->maxy=mn->nov_item->maxx;
+}
  return scale(x,mn->nov_item->miny,mn->nov_item->maxy);
 }
 static float endx(mazenav* mn) { return scalex(mn->nov_item->end_x,mn); }

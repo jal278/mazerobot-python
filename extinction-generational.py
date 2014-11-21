@@ -155,6 +155,8 @@ if(__name__=='__main__'):
 
       if(fitness(child)>best_fit):
        best_fit=fitness(child)
+       if best_fit_org!=None:
+        del best_fit_org
        best_fit_org=child.copy()
       if(child.solution()):
        solved=True

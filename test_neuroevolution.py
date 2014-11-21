@@ -6,7 +6,7 @@ def fitness(robot):
  return -mazepy.feature_detector.end_goal(robot)
 
 #initialize maze stuff with "medium maze" 
-mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
 mazepy.mazenav.random_seed()
 
 #create initial genome
@@ -21,7 +21,6 @@ robot.map()
 
 blah=robot.get_behavior()
 print blah
-asdf
 #current fitness set to how fit our first dude is
 cur_fitness=fitness(robot)
 
@@ -41,8 +40,10 @@ while not robot.solution():
  if(new_fitness>cur_fitness):
   print "New best fitness: " , new_fitness
   cur_fitness=new_fitness
+  del robot
   robot=newrobot
-
+ else:
+  del newrobot
  iterations+=1
 
  if(iterations%1000 == 0):

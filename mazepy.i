@@ -37,7 +37,7 @@ public:
  static void random_seed();
  mazenav(bool coll=false);
 
-  mazenav* copy();
+  mazenav* copy(bool z=false);
   int complexity();
   vector<float> get_behavior();
   void map();

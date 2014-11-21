@@ -50,11 +50,11 @@ class ss_evolve:
    print "copy engaged"
 
   if arc!=None:
-   self.archive=[k.copy() for k in arc]
+   self.archive=[k.copy(True) for k in arc]
    [map_into_grid(k) for k in self.archive]
 
   if pop!=None:
-   self.population=[k.copy() for k in pop]
+   self.population=[k.copy(True) for k in pop]
    [map_into_grid(k) for k in self.population]
 
   self.behavior_density=defaultdict(int)
@@ -111,11 +111,11 @@ class ss_evolve:
    self.evals+=1
    if(self.evals%1000==0):
     keys=self.behavior_density.keys()
-    #print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
+    print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
    if(disp):
     render(self.population,self.archive,self.behavior_density)
  
-   t_size=20
+   t_size=5
    parents=random.sample(self.population,t_size)
    parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
    child=parent.copy()
@@ -134,6 +134,8 @@ class ss_evolve:
    if(child.solution()):
      self.solved=True
      self.solution=child
+     print "solution"
+     self.solution.save("solution.dat")
    if(random.random()<0.01):
     self.archive.append(child)
 
@@ -176,26 +178,17 @@ def render(pop,arc,bd=None):
   x=mazepy.feature_detector.endx(robot)*SZX
   y=mazepy.feature_detector.endy(robot)*SZY
   rect=(int(x),int(y),5,5)
-  pygame.draw.rect(screen,(0,0,255),rect,0)
+  pygame.draw.rect(screen,(0,255,0),rect,0)
  pygame.display.flip()
 
 from entropy import *
 
-if(__name__=='__main__'):
- evo_fnc = calc_evolvability_entropy
- #initialize maze stuff with "medium maze" 
- #mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
- mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
- #mazepy.mazenav.initmaze("medium_maze_list.txt")
- mazepy.mazenav.random_seed()
 
- robot=None
-
- budget=5000
- branches=10
+def do_branch_search():
+ budget=1000
+ branches=2
 
  evolves=[ss_evolve(do_fit=False,eval_budget=budget) for z in range(branches)]
-
  it=0
  while True:
   print it
@@ -204,7 +197,7 @@ if(__name__=='__main__'):
   for k in evolves:
    k.evolve()
    k.explore=exploration_measure(k) 
-   print k.explore
+   print k.explore,k.solved
    if k.explore>best_exp:
     best_exp=k.explore
     best_mod=k
@@ -248,3 +241,18 @@ def solution_accum():
  
  
   
+
+if(__name__=='__main__'):
+ evo_fnc = calc_evolvability_entropy
+ #initialize maze stuff with "medium maze" 
+ #mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+ mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+ #mazepy.mazenav.initmaze("medium_maze_list.txt")
+ mazepy.mazenav.random_seed()
+
+ robot=None
+ do_branch_search()
+ 
+ for z in range(10000):
+  k=ss_evolve(do_fit=False,eval_budget=1000)
+  k.evolve()
