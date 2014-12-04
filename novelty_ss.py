@@ -1,6 +1,11 @@
 import cPickle as pickle
 from scipy.spatial import cKDTree as kd
+
+outfile="out"
 collision=True
+calc_evo=False
+seed=-1
+
 disp=True
 SZX=SZY=400
 NS_K = 20
@@ -34,9 +39,8 @@ def exploration_measure1(evolve):
  #tot/=pts.shape[0]
  return tot
 
-
 class ss_evolve:
- def __init__(self,eval_budget=5000,do_fit=False,copy=None): 
+ def __init__(self,eval_budget=5000,psize=250,do_fit=False,copy=None): 
   self.do_fitness=do_fit
   self.archive=[]
   self.population=[]
@@ -58,7 +62,7 @@ class ss_evolve:
    [map_into_grid(k) for k in self.population]
 
   self.behavior_density=defaultdict(int)
-  self.psize=250
+  self.psize=psize
   self.solution=None
   self.evals=0
 
@@ -182,11 +186,12 @@ def render(pop,arc,bd=None):
  pygame.display.flip()
 
 from entropy import *
+evo_fnc = calc_evolvability_cnt
 
 
 def do_branch_search():
  budget=1000
- branches=2
+ branches=1
 
  evolves=[ss_evolve(do_fit=False,eval_budget=budget) for z in range(branches)]
  it=0
@@ -239,20 +244,26 @@ def solution_accum():
    pickle.dump(n_solutions,a)
    a.close()
  
- 
-  
 
 if(__name__=='__main__'):
- evo_fnc = calc_evolvability_entropy
- #initialize maze stuff with "medium maze" 
+
+ log_file=open(outfile+".log","w")
+ evo_file=open(outfile+".evo","w")
+
  #mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
- mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
+ mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
- mazepy.mazenav.random_seed()
+
+ if(seed==-1):
+  mazepy.mazenav.random_seed()
+ else:
+  random.seed(seed)
+  mazepy.mazenav.seed(seed)
+
 
  robot=None
- do_branch_search()
+ #do_branch_search()
  
- for z in range(10000):
-  k=ss_evolve(do_fit=False,eval_budget=1000)
-  k.evolve()
+ #for z in range(10000):
+ k=ss_evolve(do_fit=False,eval_budget=6000000,psize=500)
+ k.evolve()
