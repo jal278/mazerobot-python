@@ -1,12 +1,38 @@
+import os
+import sys
 import cPickle as pickle
 from scipy.spatial import cKDTree as kd
 
-outfile="out"
-collision=True
-calc_evo=False
-seed=-1
+test=os.path.isfile("visualize")
 
-disp=True
+collision=True
+calc_evo=True
+extinction=True
+seed=-1
+outfile="out"
+nefile="neat.ne"
+disp=False
+#was 40000
+interval=2000
+
+if test:
+ calc_evo=False
+ disp=True
+
+best_fit=-1000000.0
+best_fit_org=None
+best_evo=0
+best_evo_org=None
+
+if(len(sys.argv)>1):
+ extinction = sys.argv[1]=='e'
+ seed = int(sys.argv[2])
+ outfile= sys.argv[3]
+ nefile=sys.argv[4]
+ if(len(sys.argv)>5):
+  interval=int(sys.argv[5])
+
+
 SZX=SZY=400
 NS_K = 20
 ELITE = 3
@@ -14,6 +40,40 @@ screen = None
 
 def fitness_end(robot):
  return -mazepy.feature_detector.end_goal(robot)
+
+
+def d_score(rset,z):
+ pts=numpy.vstack([k.behavior for k in rset])
+ zpt=numpy.array(z.behavior)
+
+ sz=len(rset)
+ best=100000
+
+ for x in xrange(sz):
+    d=((pts[x]-zpt)**2).sum()
+    if d<best:
+     best=d
+
+ return best
+   
+def optimize_pick(pop,size):
+ print "picking..."
+ rset=[]
+ rset.append(random.choice(pop))
+ while len(rset)<size:
+  bscore=-1000
+  choices=[]
+  for k in pop:
+   if k in rset:
+    continue
+   score=d_score(rset,k)
+   choices.append((score,k))
+  choices.sort(reverse=True)
+  #print choices
+  quarter=len(choices)/5
+  rset.append(random.choice(choices[:quarter])[1])
+ print "done..."
+ return rset
 
 def exploration_measure(evolve):
  lrng=0.0
@@ -110,15 +170,48 @@ class ss_evolve:
     art.fitness=sum(nearest)
 
  def evolve(self):
+  global best_evo,best_evo_org,best_fit,best_fit_org
+  repop=0
   while self.evals < self.max_evals and not self.solved:
+   eflag=False
    #population.sort(key=lambda x:x.fitness,reverse=True)
    self.evals+=1
    if(self.evals%1000==0):
     keys=self.behavior_density.keys()
-    print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
+    #print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
+    quant=self.evals,len(keys),calc_population_entropy(self.population),complexity(self.population),best_fit
+    print quant
+    log_file.write(str(quant)+"\n")
+
+   if(calc_evo and self.evals%250000==0):
+    #run genome in the maze simulator
+    print "EVO-CALC"
+    for org in random.sample(self.population,200): 
+     evo=evo_fnc(org,1000)
+     if evo>best_evo:
+      best_evo=evo
+      best_evo_org=org.copy()
+     print "evolvability:", evo
+     evo_file.write(str(self.evals)+" "+str(evo)+"\n")
+    print "EVO-CALC END"
+    evo_file.flush()
+
+   if extinction and self.evals>50 and (self.evals-1)%(interval)==0:
+    #survivor_orgs=random.sample(self.population,10)
+    survivor_orgs=optimize_pick(self.population,10)
+    eflag=True
+    repop=len(self.population)-len(survivor_orgs)
+    to_delete=[k for k in self.population if k not in survivor_orgs]
+    for k in to_delete:
+     del k
+    self.population=survivor_orgs
+   
    if(disp):
+    #if eflag:
+    #  raw_input()
     render(self.population,self.archive,self.behavior_density)
- 
+    #if eflag:
+    #  raw_input()
    t_size=5
    parents=random.sample(self.population,t_size)
    parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
@@ -138,15 +231,16 @@ class ss_evolve:
    if(child.solution()):
      self.solved=True
      self.solution=child
-     #print "solution"
-     #self.solution.save("solution.dat")
-   if(random.random()<0.01):
+   if(random.random()<0.001):
     self.archive.append(child)
 
-   to_kill=random.sample(self.population,t_size)
-   to_kill=reduce(lambda x,y:x if x.fitness<y.fitness else y,parents)
-   self.population.remove(to_kill)
-   del to_kill
+   if repop==0:
+    to_kill=random.sample(self.population,t_size)
+    to_kill=reduce(lambda x,y:x if x.fitness<y.fitness else y,parents)
+    self.population.remove(to_kill)
+    del to_kill
+   else:
+    repop-=1   
 
   best_evo_org.save(outfile+"_bestevo.dat") 
   best_fit_org.save(outfile+"_bestfit.dat") 
@@ -271,5 +365,5 @@ if(__name__=='__main__'):
  #do_branch_search()
  
  #for z in range(10000):
- k=ss_evolve(do_fit=False,eval_budget=6000000,psize=500)
+ k=ss_evolve(do_fit=False,eval_budget=3000000,psize=500)
  k.evolve()

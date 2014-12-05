@@ -216,7 +216,7 @@ if(true)
  wxString outstring;
  
 if(true)
- outstring.Printf(_T("Timestep: %d, Fitness: %f"), timestep, fitness);
+ outstring.Printf(_T("Timestep: %d, Fitness: %f C: %d"), timestep, fitness,env->hero.collisions);
  dc.DrawText(outstring,50,500);
  
 

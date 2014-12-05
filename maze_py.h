@@ -84,7 +84,7 @@ class mazenav {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
  
-   if(collision && nov_item->collisions>50) {
+   if(collision && nov_item->collisions>0) {
     nov_item->end_x= -1.0; 
     nov_item->end_y= -1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;

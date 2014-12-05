@@ -9,20 +9,6 @@ grid_sz=20
 def fitness(robot):
  return -mazepy.feature_detector.closest_goal(robot)
 
-def exploration(evolve):
- num=30
- pts=numpy.vstack([k.behavior for k in evolve.population])
- tot=0.0
- for k in range(pts.shape[0]):
-  dists=((pts-pts[k])**2).sum(1)
-  dists.sort()
-  tot+= dists[:num].sum()
- tot/=pts.shape[0]
- if tot!=0:
-  tot=math.log(tot)
- return tot
-
-
 #a function to map a robot's behavior into a grid of niches
 def map_into_grid(robot):
  x=mazepy.feature_detector.endx(robot)
