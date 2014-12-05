@@ -159,9 +159,13 @@ class ss_evolve:
    art.dists.sort()
 
  def eval_ind_k(self,art):
+  global best_evo,best_evo_org,best_fit,best_fit_org
   raw_fitness = fitness_end(art)
   if raw_fitness > self.highest_fitness:
    self.highest_fitness=raw_fitness
+   best_fit=self.highest_fitness
+   best_fit_org=art.copy()
+      
 
   if (self.do_fitness):
     art.fitness = raw_fitness
