@@ -1,7 +1,7 @@
 disp=True
 SZX=SZY=400
 NS_K = 20
-ELITE = 3
+ELITE = 5
 screen = None
 
 def fitness(robot):
@@ -26,13 +26,18 @@ def render(pop):
   y=mazepy.feature_detector.endy(robot)*SZY
   rect=(int(x),int(y),5,5)
   pygame.draw.rect(screen,(255,0,0),rect,0)
+ for robot in archive:
+  x=mazepy.feature_detector.endx(robot)*SZX
+  y=mazepy.feature_detector.endy(robot)*SZY
+  rect=(int(x),int(y),5,5)
+  pygame.draw.rect(screen,(0,255,0),rect,0)
  pygame.display.flip()
 
 from entropy import *
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
- mazepy.mazenav.initmaze("hard_maze_list.txt")
+ mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
  mazepy.mazenav.random_seed()
 
@@ -40,7 +45,7 @@ if(__name__=='__main__'):
 
  behavior_density=defaultdict(int)
  population=[]
- psize=500
+ psize=250
 
  for k in range(psize):
   robot=mazepy.mazenav()
@@ -74,7 +79,7 @@ if(__name__=='__main__'):
    if x<ELITE:
     child=population[x].copy()
    else: 
-    parents=random.sample(population,3)
+    parents=random.sample(population,2)
     parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
     child=parent.copy()
     child.mutate()
