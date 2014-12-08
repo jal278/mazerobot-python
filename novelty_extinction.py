@@ -233,7 +233,9 @@ class ss_evolve:
     self.eval_pop()
 
    if(child.solution()):
-     self.solved=True
+     if not self.solved:
+      self.solved=True
+      self.solution_eval=self.evals
      self.solution=child
    if(random.random()<0.001):
     self.archive.append(child)
@@ -249,7 +251,7 @@ class ss_evolve:
   best_evo_org.save(outfile+"_bestevo.dat") 
   best_fit_org.save(outfile+"_bestfit.dat") 
   if self.solved:
-   best_fit_org.save(outfile+"_solution.dat")
+   best_fit_org.save(outfile+"_%d_solution.dat" % self.solution_eval)
 
   return self.solved
 
@@ -355,7 +357,7 @@ if(__name__=='__main__'):
  evo_file=open(outfile+".evo","w")
 
  #mazepy.mazenav.initmaze("medium_maze_list.txt","neat.ne")
- mazepy.mazenav.initmaze("hard_maze_list.txt","neat.ne")
+ mazepy.mazenav.initmaze("hard_maze_list.txt",nefile)
  #mazepy.mazenav.initmaze("medium_maze_list.txt")
 
  if(seed==-1):
