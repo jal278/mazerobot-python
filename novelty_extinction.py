@@ -176,7 +176,7 @@ class ss_evolve:
  def evolve(self):
   global best_evo,best_evo_org,best_fit,best_fit_org
   repop=0
-  while self.evals < self.max_evals and not self.solved:
+  while self.evals < self.max_evals: #and not self.solved:
    eflag=False
    #population.sort(key=lambda x:x.fitness,reverse=True)
    self.evals+=1
@@ -248,7 +248,7 @@ class ss_evolve:
 
   best_evo_org.save(outfile+"_bestevo.dat") 
   best_fit_org.save(outfile+"_bestfit.dat") 
-  if solved:
+  if self.solved:
    best_fit_org.save(outfile+"_solution.dat")
 
   return self.solved
@@ -369,5 +369,5 @@ if(__name__=='__main__'):
  #do_branch_search()
  
  #for z in range(10000):
- k=ss_evolve(do_fit=False,eval_budget=3000000,psize=500)
+ k=ss_evolve(do_fit=False,eval_budget=6000000,psize=500)
  k.evolve()
