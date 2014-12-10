@@ -104,6 +104,7 @@ def exploration_measure1(evolve):
 class ss_evolve:
  def __init__(self,eval_budget=5000,psize=250,do_fit=False,copy=None): 
   print "Do fit",do_fitness
+  print "Do evol",calc_evo
   self.do_fitness=do_fit
   self.archive=[]
   self.population=[]
@@ -139,7 +140,7 @@ class ss_evolve:
     robot.parent=None
     self.behavior_density[map_into_grid(robot)]+=1
     self.population.append(robot)
-   self.evals=self.psize
+   #self.evals=self.psize
   self.eval_pop()
   self.solved=False
   self.max_evals=eval_budget
@@ -184,7 +185,6 @@ class ss_evolve:
   while self.evals < self.max_evals: #and not self.solved:
    eflag=False
    #population.sort(key=lambda x:x.fitness,reverse=True)
-   self.evals+=1
    if(self.evals%1000==0):
     keys=self.behavior_density.keys()
     #print self.evals,len(keys),calc_population_entropy(self.population),exploration_measure(self)
@@ -204,6 +204,8 @@ class ss_evolve:
      evo_file.write(str(self.evals)+" "+str(evo)+"\n")
     print "EVO-CALC END"
     evo_file.flush()
+
+   self.evals+=1
 
    if extinction and self.evals>50 and (self.evals-1)%(interval)==0:
     #survivor_orgs=random.sample(self.population,10)
