@@ -4,7 +4,8 @@ import cPickle as pickle
 from scipy.spatial import cKDTree as kd
 
 test=os.path.isfile("visualize")
-
+do_fitness=False
+LOW_VAL = -10000000
 collision=True
 calc_evo=True
 extinction=True
@@ -31,7 +32,8 @@ if(len(sys.argv)>1):
  nefile=sys.argv[4]
  if(len(sys.argv)>5):
   interval=int(sys.argv[5])
-
+ if(len(sys.argv)>6):
+  do_fitness=sys.argv[6]=='f'
 
 SZX=SZY=400
 NS_K = 20
@@ -101,6 +103,7 @@ def exploration_measure1(evolve):
 
 class ss_evolve:
  def __init__(self,eval_budget=5000,psize=250,do_fit=False,copy=None): 
+  print "Do fit",do_fitness
   self.do_fitness=do_fit
   self.archive=[]
   self.population=[]
@@ -169,6 +172,8 @@ class ss_evolve:
 
   if (self.do_fitness):
     art.fitness = raw_fitness
+    if not art.viable:
+     art.fitness = LOW_VAL
   else:  
     nearest,indexes=self.tree.query(art.behavior,NS_K)
     art.fitness=sum(nearest)
@@ -371,5 +376,5 @@ if(__name__=='__main__'):
  #do_branch_search()
  
  #for z in range(10000):
- k=ss_evolve(do_fit=False,eval_budget=6000000,psize=500)
+ k=ss_evolve(do_fit=do_fitness,eval_budget=3000000,psize=500)
  k.evolve()

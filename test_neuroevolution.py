@@ -35,7 +35,7 @@ while not robot.solution():
  newrobot.mutate()
  newrobot.map()
  new_fitness=fitness(newrobot)
-
+ 
  #new best?
  if(new_fitness>cur_fitness):
   print "New best fitness: " , new_fitness
