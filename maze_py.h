@@ -1,6 +1,89 @@
 #include "experiments.h"
 #include "noveltyset.h"
 #include "genome.h"
+#include "maze.h"
+
+class mazewrapper {
+ public:
+  Environment* env_orig;
+  Environment* env;
+
+  mazewrapper() {
+   env = NULL;
+   env_orig= NULL;
+  }
+
+  vector<float> get_walls() {
+   vector<float> ret;
+   for(int i=0;i<env->lines.size();i++) {
+    Line* l = env->lines[i];
+    ret.push_back(l->a.x);
+    ret.push_back(l->a.y);
+    ret.push_back(l->b.x);
+    ret.push_back(l->b.y);
+   }  
+   return ret;
+  }
+
+  void load_env(const char* ename) {
+   if (env_orig!=NULL)
+    delete env_orig;
+   env_orig = new Environment(ename);
+   reset();
+  }
+
+  void reset() {
+   if (env!=NULL)
+    delete env;
+   env = new Environment(*env_orig); 
+  }
+
+  vector<float> get_state() {
+   double inps[20]; 
+   env->generate_neural_inputs(inps);
+   vector<float> state;
+
+   for(int i=1;i<11;i++)
+    state.push_back(inps[i]);
+
+   //state.push_back(env->hero.ang_vel / 3.0);
+   //state.push_back(env->hero.speed / 3.0);
+
+   return state;
+  }
+
+  float goal_dist() { 
+   return env->hero.location.distance(env->end);
+  }  
+
+  void take_action(int a) {
+   float ang_act = (a%3)*0.5;
+   float vel_act = ((a/3) % 3)*0.5;
+
+   set_outputs(ang_act,vel_act,0);
+
+   env->Update();
+  }
+ 
+  void set_outputs(float o1, float o2, float o3) {
+   env->interpret_outputs(o1,o2,o3);
+  }
+ 
+  vector<float> get_behavior() {
+   vector<float> behavior;
+   behavior.push_back(env->hero.location.x);
+   behavior.push_back(env->hero.location.y);
+   behavior.push_back(env->hero.heading);
+   return behavior;
+  }
+ 
+  ~mazewrapper() {
+   if (env!=NULL)
+    delete env;
+   if (env_orig!=NULL)
+    delete env_orig;
+  } 
+};
 
 class mazenav {
  public:
@@ -23,6 +106,7 @@ class mazenav {
 	nov_item=NULL;
 	rendered=false;
   }
+
   int complexity() {
    return o->net->linkcount(); //g->genes.size();
   }
@@ -79,7 +163,7 @@ class mazenav {
   void map() {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
-
+   /*
    if(nov_item->collisions!=0) {
     nov_item->end_x= -1.0; 
     nov_item->end_y= -1.0; 
@@ -89,7 +173,8 @@ class mazenav {
     nov_item->solution=false;
    }
    else nov_item->viable=true;
- 
+   */ 
+   nov_item->viable=true;
    rendered=true;
   }
 

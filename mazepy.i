@@ -1,12 +1,30 @@
 %include "carrays.i"
+%include "std_vector.i"
+using namespace std;
+namespace std {
+%template(vectorf) vector<float>;
+}
 %array_class(float,floatArray);
-
 %newobject *::copy;
 %module mazepy
 %{
 #include "maze_py.h"
 %}
 
+#include "maze_py.h"
+class mazewrapper {
+public:
+  mazewrapper();
+  void load_env(const char* ename);
+  void reset();
+  float goal_dist();
+  vector<float> get_state();
+  void take_action(int a);
+  void set_outputs(float o1, float o2, float o3);
+  vector<float> get_walls();
+  vector<float> get_behavior();
+  ~mazewrapper();
+}; 
 
 class feature_detector {
 public:

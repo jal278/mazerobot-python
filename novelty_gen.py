@@ -45,7 +45,7 @@ if(__name__=='__main__'):
 
  behavior_density=defaultdict(int)
  population=[]
- psize=250
+ psize=500
 
  for k in range(psize):
   robot=mazepy.mazenav()
@@ -90,6 +90,7 @@ if(__name__=='__main__'):
    new_population.append(child)
    if(child.solution()):
     solved=True
+    break
   archive.append(random.choice(population))
   evals+=psize
   keys=behavior_density.keys()
@@ -99,7 +100,7 @@ if(__name__=='__main__'):
 
   population=new_population
 
-
+ child.save("solution.brain")
  #run genome in the maze simulator
 
  #calculate evolvability

@@ -555,10 +555,14 @@ public:
         float d_ang = new_ang_vel-hero.ang_vel;
         float d_speed= new_speed-hero.speed;
 
+        //disable smoothness req?
+        /*
         if(d_ang>=0.2) d_ang=0.2;
         if(d_ang<=-0.2) d_ang=-0.2;
         if(d_speed>=0.2) d_speed=0.2;
         if(d_speed<=-0.2) d_speed=-0.2;
+	*/
+
         hero.ang_vel+=d_ang; //(o1-0.5)*6.0;
         hero.speed+=d_speed; //(o2-0.5)*6.0;
 
