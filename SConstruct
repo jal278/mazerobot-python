@@ -1,7 +1,6 @@
 import glob
 
 
-
 env=Environment(CPPFLAGS='-I include/ -march=native -O2')
 #env=Environment(CPPFLAGS='-g -I include/')
 env.ParseConfig('python-config --includes --libs')
@@ -9,6 +8,10 @@ env.ParseConfig('python-config --includes --libs')
 allsrc=glob.glob('*.cpp')+glob.glob('*.cxx')
 allsrc.remove("mazeApp.cpp")
 allsrc.remove("mazeDlg.cpp")
+
+#for predefined space
+env.Append(CPPDEFINES=['SIMPLE_SENSORS'])
+
 
 env.Program('mazesim', allsrc,LIBS=['m','python2.7'])
 
