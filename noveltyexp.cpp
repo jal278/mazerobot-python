@@ -37,6 +37,10 @@ plot behavior_plot;
 
 using namespace std;
 
+Environment* grab_environment() {
+ return envList[0];
+}
+
 enum novelty_measure_type { novelty_fitness, novelty_sample, novelty_accum, novelty_sample_free };
 static novelty_measure_type novelty_measure = novelty_sample;
 
@@ -401,7 +405,7 @@ void enumerate_behaviors(const char* mazefile, long long par,const char* outfile
 
         Organism* new_org= new Organism(0.0,g,0);
         noveltyitem* nov_item = maze_novelty_map(new_org);
-        ofile << nov_item->data[0][0] << " " << nov_item->data[0][1] << endl;
+        ofile << nov_item->end_x << " " << nov_item->end_y << endl;
         delete nov_item;
         delete new_org;
         par++;
@@ -1146,6 +1150,7 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
     ni->max_dist = sqrt(xsz*xsz+ysz*ysz);
     ni->end_x=newenv->hero.location.x;
     ni->end_y=newenv->hero.location.y;
+    //cout << ni->end_x << endl;
     ni->timesteps=newenv->steps;
     ni->collisions=newenv->hero.collisions;
     ni->tot_turn=newenv->hero.total_spin;
@@ -1153,7 +1158,7 @@ double mazesim(Network* net, vector< vector<float> > &dc, data_record *record,En
     ni->end_goal_dist=newenv->distance_to_target(); 
     ni->closest_goal_dist=newenv->closest_to_target;
     ni->end_start_dist=newenv->distance_to_start();  
-
+    ni->heading = newenv->hero.heading;
  }
 
     if (record!=NULL)
@@ -1309,6 +1314,8 @@ float minx,miny,maxx,maxy;
 envList[0]->get_range(minx,miny,maxx,maxy);
 cout << minx << " " << maxx << " " << miny << " " << maxy << endl;
 }
+
+
 
 //evaluates an individual and stores the novelty point
 noveltyitem* maze_novelty_map(Organism *org,data_record* record)

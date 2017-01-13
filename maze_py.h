@@ -79,8 +79,10 @@ class mazenav {
   void map() {
    o=new Organism(0.0,g,0);
    nov_item = maze_novelty_map(o);
-
-   if(nov_item->collisions!=0) {
+ 
+   disable=false;
+    
+   if(disable && nov_item->collisions!=0) {
     nov_item->end_x= -1.0; 
     nov_item->end_y= -1.0; 
     nov_item->closest_goal_dist = nov_item->max_dist;
@@ -99,11 +101,15 @@ class mazenav {
 
   void clear() { return; }
 
+  float get_heading() {
+   return nov_item->heading;
+  }
+
   float get_x() { 
-    return nov_item->data[0][0];
+    return nov_item->end_x; //data[0][0];
   }
   float get_y() {
-    return nov_item->data[0][1];
+    return nov_item->end_y; //data[0][1];
   }
   bool viable() {
    return nov_item->viable;
@@ -139,7 +145,7 @@ static float endx(mazenav* mn) { return scalex(mn->nov_item->end_x,mn); }
 static float endy(mazenav* mn) { return scaley(mn->nov_item->end_y,mn); }
 static float midx(mazenav* mn) { return scalex(mn->nov_item->mid_x,mn); }
 static float midy(mazenav* mn) { return scaley(mn->nov_item->mid_y,mn); }
-
+static float heading(mazenav* mn) { return mn->get_heading(); }
 static float state_entropy(mazenav* mn) {
  return mn->nov_item->path_entropy; 
 }

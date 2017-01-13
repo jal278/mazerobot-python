@@ -21,6 +21,7 @@ static float spd(mazenav* mn);
 static float coll(mazenav* mn);
 static float turn(mazenav* mn);
 static float state_entropy(mazenav* mn);
+static float heading(mazenav* mn);
 };
 
 class mazenav {
@@ -47,6 +48,7 @@ public:
 
   float get_x(); 
   float get_y();
+  float get_heading();
   bool viable();
   bool solution();
   ~mazenav();

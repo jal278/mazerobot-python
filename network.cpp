@@ -24,6 +24,7 @@ int Network::find_out_node(Link* l) {
     return find_node(l->out_node->node_id);
 }
 
+#ifdef USE_BOOST 
 Graph* Network::to_graph(void) {
     std::vector<NNode*>::const_iterator curnode;
     std::vector<Link*>::iterator curlink;
@@ -39,6 +40,7 @@ Graph* Network::to_graph(void) {
     } //end for loop on nodes
     return construct;
 }
+#endif
 
 void Network::ctrnn_dynamics()
 {

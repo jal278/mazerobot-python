@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     ValueArg<int> rng_seed("r","random_seed","Random Seed",false,-1,"int");
     cmd.add(rng_seed);
 
-    ValueArg<long long> netindex("","ni","Net Index",false,0,"long int");
+    ValueArg<long long> netindex("","ni","Net Index",false,-1,"long int");
 
 
     //actually parse command line arguments
@@ -127,11 +127,11 @@ int main(int argc, char **argv) {
 
 
     //needed for passive drift model, enumerating all behaviors in a particular space
-    /*
+    if(netindex.getValue()!=-1) {
     long long netindex_val=netindex.getValue();
     enumerate_behaviors(mazename,netindex_val,filename,param);
     return 0;
-    */
+    }
 
     if(passive_switch.getValue()) {
         //for limited-capacity niche model

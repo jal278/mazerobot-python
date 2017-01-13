@@ -1,19 +1,26 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
+
+#ifdef USE_BOOST
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/iteration_macros.hpp>
+using namespace boost;
+#endif
+
 #include <algorithm>
 #include <vector>
 #include "neat.h"
 #include "nnode.h"
 
-using namespace boost;
 using namespace std;
 namespace NEAT {
+#ifdef USE_BOOST
 typedef adjacency_list<vecS, vecS, bidirectionalS> Graph;
+#endif
+
 class Genome;
 // -----------------------------------------------------------------------
 // A NETWORK is a LIST of input NODEs and a LIST of output NODEs
@@ -25,8 +32,9 @@ class Network {
 
     //protected:
 public:
-
+    #ifdef USE_BOOST
     Graph* to_graph(void);
+    #endif
     int numnodes; // The number of nodes in the net (-1 means not yet counted)
     int numlinks; //The number of links in the net (-1 means not yet counted)
 

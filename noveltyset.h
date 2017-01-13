@@ -144,6 +144,7 @@ public:
     float miny;
     float max_dist;
     float path_entropy;
+    float heading;
 //we can keep track of genotype & phenotype of novel item
     NEAT::Genome* genotype;
     NEAT::Network* phenotype;
