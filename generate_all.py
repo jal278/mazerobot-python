@@ -1,6 +1,8 @@
 from multiprocessing import Pool
 import os
 import time
+
+
 def do_job(x):
  start,number,output = x
  cmd = "./mazesim --ni %ld -p %ld -o %s" % (start,number,output)

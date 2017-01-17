@@ -1,10 +1,11 @@
 import numpy as np
 import pdb
 
-def read_in(fname='storage_uncompressed.dat'):
+def read_in(fname='storage.dat'):
  dt = np.dtype([('x', np.uint16), ('y', np.uint16),('evolvability',np.uint16),('behaviorhash',np.uint16)])
- domain = np.fromfile("storage_uncompressed.dat",dt)
+ domain = np.fromfile(fname,dt)
  return domain
+
 
 domain = read_in()
 heat_map = np.zeros([210,210])
