@@ -2,7 +2,7 @@
 from PIL import Image, ImageDraw
 from scipy.spatial import cKDTree as kd
 
-disp=True
+disp=False
 SZX=SZY=400
 NS_K = 20
 ELITE = 3
@@ -89,7 +89,7 @@ def transform_line(line,xrng_old,yrng_old,xrng_new,yrng_new):
  return transform_pnt(line[0:2],xrng_old,yrng_old,xrng_new,yrng_new)+transform_pnt(line[2:],xrng_old,yrng_old,xrng_new,yrng_new)
  
 
-def draw_maze(walls,agent,sz=64):
+def draw_maze(walls,agent,sz=64,fname=None):
  maze = Image.new('RGB',(sz,sz),(255,255,255))
 
  wallx = [c[0] for c in walls] + [c[2] for c in walls]
@@ -114,13 +114,19 @@ def draw_maze(walls,agent,sz=64):
  yprime_head = yprime+math.sin(heading_rad)*radiusy
 
  d.ellipse([xprime-radiusx,yprime-radiusy,xprime+radiusx,yprime+radiusy],(255,0,0),(255,0,0))
- d.line([xprime,yprime,xprime_head,yprime_head],fill=(0,128,0),width=2)
+ 
+ draw_heading=False
+ if draw_heading:
+  d.line([xprime,yprime,xprime_head,yprime_head],fill=(0,128,0),width=2)
 
- if True:
+ if False:
   from pylab import *
   imshow(maze)
   show()
- 
+
+ if fname!=None:
+  maze.save(fname) 
+
  return numpy.array(maze)
 
 if(__name__=='__main__'):
@@ -171,13 +177,13 @@ if(__name__=='__main__'):
   child.map()
 
   if True:
-
    x=mazepy.feature_detector.endx(child)
    y=mazepy.feature_detector.endy(child)
    print child.get_x()
    print child.get_y()
    print child.get_heading()
-   draw_maze(maze_desc,(child.get_x(),child.get_y(),child.get_heading())) 
+   img=draw_maze(maze_desc,(child.get_x(),child.get_y(),child.get_heading()),fname='imgs/%d-%d.png'%(child.get_x(),child.get_y()))
+    
 
   population.append(child)
   behavior_density[map_into_grid(child)]+=1

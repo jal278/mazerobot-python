@@ -50,7 +50,11 @@ class mazenav {
   }
 
   void init_rand() {
+        #ifdef SIMPLE_SENSORS
+        g=new Genome(3,2,0,0);
+        #else 
 	g=new Genome(11,2,0,0);
+        #endif
   }
 
   void make_random() {
