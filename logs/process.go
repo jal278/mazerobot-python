@@ -52,7 +52,7 @@ func get_neighbors(indx uint32) []uint32 {
     c++;
   }
   v[i]=oldval;
- } 
+ }
  return ret
 }
 

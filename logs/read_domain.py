@@ -21,12 +21,27 @@ class precomputed_maze_domain:
   def __init__(self):
     self.data = self.read_in()
     self.size = 16
-    self.behavior_size = 2
+    self.behavior_size = 2  
+    self.solution_distance_calculate()
 
   def read_in(self,fname='storage.dat'):
    dt = np.dtype([('x', np.uint16), ('y', np.uint16),('evolvability',np.uint16),('behaviorhash',np.uint16),('solution',np.uint8)])
    domain = np.fromfile(fname,dt)
    return domain
+
+  def gather_neighbors(self,idxes):
+   pass    
+
+  def solution_distance_calculate(self):
+   DUMMY_VAL = 10000.0
+   distances = np.ones(self.data.shape[0])*DUMMY_VAL
+   solutions = self.data['solution']
+   distances[solutions==1] = 0
+   open_list = (distances<DUMMY_VAL).nonzero()
+   neighbors = self.gather_neighbors(open_list[0])
+   pdb.set_trace()
+   
+    
  
   def to_idx(self,descriptor):
    idx = 0
