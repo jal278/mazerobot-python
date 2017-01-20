@@ -24,7 +24,7 @@ class precomputed_maze_domain:
     self.behavior_size = 2
 
   def read_in(self,fname='storage.dat'):
-   dt = np.dtype([('x', np.uint16), ('y', np.uint16),('evolvability',np.uint16),('behaviorhash',np.uint16)])
+   dt = np.dtype([('x', np.uint16), ('y', np.uint16),('evolvability',np.uint16),('behaviorhash',np.uint16),('solution',np.uint8)])
    domain = np.fromfile(fname,dt)
    return domain
  
@@ -58,7 +58,7 @@ class precomputed_maze_domain:
 
   def fitness(self,descriptor):
    #return sum(descriptor)
-   x,y,_,_ = self.get_data(descriptor=descriptor)
+   x,y,_,_,_ = self.get_data(descriptor=descriptor)
 
    return -(float(x-32)**2+float(y-20)**2)
 
@@ -151,7 +151,7 @@ class search:
   #print self.fitness.mean(),self.fitness.max()
  
 domain_total = precomputed_maze_domain()
-
+pdb.set_trace()
 search = search(domain_total)
 for _ in xrange(1000):
  search.epoch()

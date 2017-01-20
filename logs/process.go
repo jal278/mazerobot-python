@@ -19,6 +19,7 @@ type bhvior struct {
  Y int16
  Evolvability int16
  Behaviorhash int16
+ solution uint8 //when reading in solution or not
 }
 
 //todo: align this with c++ maze code at some piont
@@ -93,9 +94,11 @@ func process_file(fname string, themap map[uint32]bhvior) {
   stxt:=strings.Fields(string(txt))
   xf,_:=strconv.ParseFloat(stxt[0],64)
   yf,_:=strconv.ParseFloat(stxt[1],64)
+  solutionf,_:=strconv.ParseFloat(stxt[2],64)
   x:=int(xf)
   y:=int(yf)
-  themap[index+count]=bhvior{int16(x),int16(y),int16(0),int16(hash_behavior(x,y))}
+  solution:=uint8(solutionf)
+  themap[index+count]=bhvior{int16(x),int16(y),int16(0),int16(hash_behavior(x,y)),solution}
   count++;
  }
 

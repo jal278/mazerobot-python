@@ -404,7 +404,8 @@ void enumerate_behaviors(const char* mazefile, long long par,const char* outfile
 
         Organism* new_org= new Organism(0.0,g,0);
         noveltyitem* nov_item = maze_novelty_map(new_org);
-        ofile << nov_item->end_x << " " << nov_item->end_y << endl;
+        ofile << nov_item->end_x << " " << nov_item->end_y << " " << nov_item->solution << endl;
+
         delete nov_item;
         delete new_org;
         par++;
