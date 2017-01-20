@@ -2,7 +2,9 @@ import random
 import numpy as np
 import pdb
 from scipy.spatial import cKDTree as kd
+from numba import jit,jitclass
 
+@jit
 def evalNovKDTree(data,archive):
   tot_data = np.vstack( (data,archive) )
   tree=kd(tot_data) 
@@ -17,6 +19,72 @@ def eval_ind_k(tree,pt,NS_K=20):
  nearest,indexes=tree.query(pt,NS_K)
  return sum(nearest)
 
+
+@jit
+def get_neighbors(idx,size=16):
+   n = np.zeros(3*size,dtype=np.int64)
+   leading = idx
+   discarded = 0 
+   cnt=0
+   for it in range(size):
+    digit = leading%3
+    leading -= digit
+
+    for permut in range(3):
+     n[cnt]= (leading+permut)*(3**it) + discarded 
+     cnt+=1
+
+    discarded += digit*(3**it)
+    leading/=3 
+
+   #print self.from_idx(idx)
+   #for n_idx in n:
+   # print self.from_idx(n_idx) 
+   return n
+
+@jit
+def gather_neighbors(olist):
+   neighbors=np.zeros_like(olist,dtype=np.uint8)
+   idxes = olist.nonzero()[0]
+   neighbors[idxes]=1
+   for idx in idxes:
+    neighbors[get_neighbors(idx)]=1
+   return neighbors
+
+
+#@jit(["uint8[:](uint8[:])"])
+def _solution_distance_calculate(solutions):
+   DUMMY_VAL = 10000.0
+   distances = np.ones(solutions.shape[0],dtype=np.uint8)*DUMMY_VAL
+   distances[solutions==1] = 0
+
+   open_list = np.zeros(len(distances),dtype=np.uint8) 
+   open_list[(distances<DUMMY_VAL)]=1
+   closed_list = np.zeros(len(distances),dtype=np.uint8)
+
+   cost = 1
+   while open_list.sum()>0:
+    #gather neighbors from open list
+    neighbors = gather_neighbors(open_list)
+    #mark everything in open list as closed
+    closed_list[open_list==1] = 1
+    #clear open list
+    open_list[:]=0
+
+    #disregard neighbors already explored
+    neighbors[(closed_list==1)] = 0
+    #set cost for remaining neighbors
+    distances[(neighbors==1)]=cost
+
+    open_list[(neighbors==1)]=1
+    cost+=1
+    print cost 
+    if cost>20:
+     break
+   return distances
+
+
+
 class precomputed_maze_domain:
   def __init__(self):
     self.data = self.read_in()
@@ -29,20 +97,68 @@ class precomputed_maze_domain:
    domain = np.fromfile(fname,dt)
    return domain
 
-  def gather_neighbors(self,idxes):
-   pass    
+  def get_neighbors(self,idx):
+   n = []
+   leading = idx
+   discarded = 0 
+
+   for it in range(self.size):
+    digit = leading%3
+    leading -= digit
+
+    for permut in range(3):
+     n.append( (leading+permut)*(3**it) + discarded )
+
+    discarded += digit*(3**it)
+    leading/=3 
+
+   #print self.from_idx(idx)
+   #for n_idx in n:
+   # print self.from_idx(n_idx) 
+   return n
+
+  def gather_neighbors(self,olist):
+   neighbors=np.zeros_like(olist,dtype=np.uint8)
+   idxes = olist.nonzero()[0]
+   neighbors[idxes]=1
+   for idx in idxes:
+    neighbors[self.get_neighbors(idx)]=1
+   return neighbors
 
   def solution_distance_calculate(self):
+   data = self.data['solution']
+   self.distance= _solution_distance_calculate(data)
+
+   """
    DUMMY_VAL = 10000.0
    distances = np.ones(self.data.shape[0])*DUMMY_VAL
    solutions = self.data['solution']
    distances[solutions==1] = 0
-   open_list = (distances<DUMMY_VAL).nonzero()
-   neighbors = self.gather_neighbors(open_list[0])
-   pdb.set_trace()
-   
-    
- 
+
+   self.open_list = np.zeros(len(distances),dtype=np.uint8) 
+   self.open_list[(distances<DUMMY_VAL)]=1
+   self.closed_list = np.zeros(len(distances),dtype=np.uint8)
+
+   cost = 1
+   while sum(self.open_list)>0:
+    #gather neighbors from open list
+    neighbors = self.gather_neighbors(self.open_list)
+    #mark everything in open list as closed
+    self.closed_list[self.open_list==1] = 1
+    #clear open list
+    self.open_list[:]=0
+
+    #disregard neighbors already explored
+    neighbors[(self.closed_list==1)] = 0
+    #set cost for remaining neighbors
+    distances[(neighbors==1)]=cost
+
+    self.open_list[(neighbors==1)]=1
+    cost+=1
+    print cost 
+    if cost>20:
+     break
+  """ 
   def to_idx(self,descriptor):
    idx = 0
    for val in descriptor:
