@@ -4,8 +4,8 @@ import time
 
 
 def do_job(x):
- start,number,output = x
- cmd = "./mazesim --ni %ld -p %ld -o %s" % (start,number,output)
+ maze,start,number,output = x
+ cmd = "./mazesim -m %s --ni %ld -p %ld -o %s" % (maze,start,number,output)
  print "starting..."
  os.system(cmd) 
  print cmd 
@@ -18,12 +18,12 @@ if __name__=='__main__':
  offset = 0
  max_size = 200000
  total = 3**16
-
+ maze="hard_maze_list.txt"
  while True:
   output = "logs/out%d.txt" % index
   remaining = total-index
   to_do = min(max_size,remaining)
-  jobs.append((offset,to_do,output))
+  jobs.append((maze,offset,to_do,output))
   
   offset+=to_do
   index+=1
@@ -31,6 +31,6 @@ if __name__=='__main__':
   if offset>=total:
    break
 
- p = Pool(processes=6) 
+ p = Pool(processes=7) 
  p.map(do_job,jobs)
 
