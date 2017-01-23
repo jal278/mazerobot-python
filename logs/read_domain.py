@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import pdb
+import os.path
 from scipy.spatial import cKDTree as kd
 from numba import jit,jitclass
 
@@ -19,9 +20,8 @@ def eval_ind_k(tree,pt,NS_K=20):
  nearest,indexes=tree.query(pt,NS_K)
  return sum(nearest)
 
-
 @jit
-def get_neighbors(idx,size=16):
+def _get_neighbors(idx,size=16):
    n = np.zeros(3*size,dtype=np.int64)
    leading = idx
    discarded = 0 
@@ -48,16 +48,15 @@ def gather_neighbors(olist):
    idxes = olist.nonzero()[0]
    neighbors[idxes]=1
    for idx in idxes:
-    neighbors[get_neighbors(idx)]=1
+    neighbors[_get_neighbors(idx)]=1
    return neighbors
 
-
-#@jit(["uint8[:](uint8[:])"])
+@jit(["uint8[:](uint8[:])"])
 def _solution_distance_calculate(solutions):
    DUMMY_VAL = 10000.0
    distances = np.ones(solutions.shape[0],dtype=np.uint8)*DUMMY_VAL
    distances[solutions==1] = 0
-
+   
    open_list = np.zeros(len(distances),dtype=np.uint8) 
    open_list[(distances<DUMMY_VAL)]=1
    closed_list = np.zeros(len(distances),dtype=np.uint8)
@@ -83,6 +82,20 @@ def _solution_distance_calculate(solutions):
      break
    return distances
 
+@jit
+def _to_idx(descriptor):
+   idx = 0
+   for val in descriptor:
+    idx*=3
+    idx+=val%3
+   return idx
+
+@jit
+def _get_data(descriptor,data):
+   #if idx==None:
+   idx=_to_idx(descriptor)
+
+   return data[idx] 
 
 
 class precomputed_maze_domain:
@@ -93,6 +106,7 @@ class precomputed_maze_domain:
     self.solution_distance_calculate()
 
   def read_in(self,fname='storage.dat'):
+   self.fname = fname
    dt = np.dtype([('x', np.uint16), ('y', np.uint16),('evolvability',np.uint16),('behaviorhash',np.uint16),('solution',np.uint8)])
    domain = np.fromfile(fname,dt)
    return domain
@@ -126,8 +140,17 @@ class precomputed_maze_domain:
    return neighbors
 
   def solution_distance_calculate(self):
-   data = self.data['solution']
-   self.distance= _solution_distance_calculate(data)
+   solution_file = self.fname+".solutions.npy"
+   cached_solutions = False #os.path.isfile(solution_file)
+
+   if not cached_solutions:
+    print "not cached..."
+    data = self.data['solution']
+    self.distance= _solution_distance_calculate(data)
+    np.save(solution_file,data)
+   else:
+    print "cached..."
+    self.distance= np.load(solution_file)
 
    """
    DUMMY_VAL = 10000.0
@@ -159,12 +182,9 @@ class precomputed_maze_domain:
     if cost>20:
      break
   """ 
+
   def to_idx(self,descriptor):
-   idx = 0
-   for val in descriptor:
-    idx*=3
-    idx+=val%3
-   return idx
+   return _to_idx(descriptor)
 
   def from_idx(self,idx):
    out = np.zeros(self.size)
@@ -173,11 +193,8 @@ class precomputed_maze_domain:
     idx/=3 
    return out  
 
-  def get_data(self,descriptor=None,idx=None):
-   if idx==None:
-    idx=self.to_idx(descriptor)
-
-   return self.data[idx] 
+  def get_data(self,descriptor=None):
+   return _get_data(descriptor,self.data)
 
   def clone(self,descriptor):
    return descriptor.copy()
@@ -219,6 +236,7 @@ class precomputed_maze_domain:
    return np.random.randint(-1,2,self.size)
 
 MAX_ARCHIVE_SIZE = 1000
+
 class search:
  def __init__(self,domain,pop_size=500,novelty=True):
   self.epoch_count = 0
@@ -279,10 +297,9 @@ class search:
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
-  #print self.fitness.mean(),self.fitness.max()
+
  
 domain_total = precomputed_maze_domain()
-pdb.set_trace()
 search = search(domain_total)
 for _ in xrange(1000):
  search.epoch()

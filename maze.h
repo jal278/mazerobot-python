@@ -460,7 +460,7 @@ public:
             cout << "NAN Distance error..." << endl;
             return 500.0;
         }
-        if(dist<10.0  && !reachgoal) {
+        if(dist<20.0  && !reachgoal) {
             reachgoal=1; //if within 5 units, success!
             //closest_to_poi=10000000;
         }
