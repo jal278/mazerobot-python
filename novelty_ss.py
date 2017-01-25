@@ -6,21 +6,24 @@ import mazepy
 import precomputed_domain
 import entropy
 
-novelty=True
+novelty=False
 disp=True
 SZX=SZY=400
-NS_K = 20
+NS_K = 10
 ELITE = 3
 screen = None
 archive=[]
-tourn_size = 5
+if novelty:
+ tourn_size = 2
+else:
+ tourn_size = 10
 
 from entropy import *
 domain = default_domain
 precomputed = True
 if precomputed:
- domain = precomputed_domain.precomputed_domain_interface()
- entropy.default_domain = domain   
+ domain = precomputed_domain.precomputed_domain_interface("logs/storage_medium.dat")
+ entropy.default_domain = domain 
 
 if disp:
  import pygame
@@ -31,7 +34,7 @@ if disp:
  
  background = pygame.Surface(screen.get_size())
  background = background.convert()
- background.fill((250, 250, 250))
+ background.fill((250, 250, 250,255))
 
 def render(pop,bd=None):
  global screen,background
@@ -52,12 +55,13 @@ def render(pop,bd=None):
   rect=(int(x),int(y),5,5)
   pygame.draw.rect(screen,(255,0,0),rect,0)
 
- for robot in archive:
-  x,y = domain.get_behavior(robot)
-  x=x*SZX
-  y=y*SZY
-  rect=(int(x),int(y),5,5)
-  pygame.draw.rect(screen,(0,255,0),rect,0)
+ if novelty:
+  for robot in archive:
+   x,y = domain.get_behavior(robot)
+   x=x*SZX
+   y=y*SZY
+   rect=(int(x),int(y),5,5)
+   pygame.draw.rect(screen,(0,255,0),rect,0)
 
  pygame.display.flip()
 
@@ -77,6 +81,7 @@ def eval_ind(art,tree):
   art.fitness=nearest.sum()
  else:
   art.fitness=domain.get_fitness(art)
+  art.raw_fitness = art.fitness
  
 def read_maze(fname='hard_maze.txt'):
  lines = open(fname).read().split("\n")[7:-1]
@@ -163,8 +168,7 @@ if(__name__=='__main__'):
   population.append(robot)
 
  tree=None
- if novelty:
-  tree=eval_pop(population)
+ tree=eval_pop(population)
  solved=False
 
  evals=psize
@@ -173,10 +177,9 @@ if(__name__=='__main__'):
 
  while evals < max_evals and not solved:
   #population.sort(key=lambda x:x.fitness,reverse=True)
-  evals+=1
   if(evals%1000==0):
    keys=behavior_density.keys()
-   print evals,len(keys),calc_population_entropy(population)
+   print evals,len(keys),calc_population_entropy(population),max([x.raw_fitness for x in population])
    if(disp):
     render(population,behavior_density)
  
@@ -204,16 +207,21 @@ if(__name__=='__main__'):
   else:
    if novelty:
     eval_pop(population)
-
+   else:
+    eval_ind(child,tree) 
+  
   if(child.solution()):
     solved=True
   if(random.random()<0.01):
    archive.append(child)
+
   to_kill_idx=np.random.randint(0,len(population),3)
   to_kill_idx=reduce(lambda x,y:x if population[x].fitness<population[y].fitness else y,to_kill_idx)
   to_kill=population[to_kill_idx]
   population=population[:to_kill_idx]+population[to_kill_idx+1:]
+
   del to_kill
+  evals+=1
 
 
  #run genome in the maze simulator

@@ -51,8 +51,16 @@ def gather_neighbors(olist):
     neighbors[_get_neighbors(idx)]=1
    return neighbors
 
-@jit(["uint8[:](uint8[:])"])
-def _solution_distance_calculate(solutions):
+@jit
+def nstep_evo(idx,behaviorhash,n):
+   onehot = np.zeros_like(behaviorhash)
+   onehot[idx]=1
+   dists= _solution_distance_calculate(onehot,max_distance=n)
+   print (dists<=n).sum()
+   return (dists<=n).nonzero()
+
+@jit(["uint8[:](uint8[:],int64)"])
+def _solution_distance_calculate(solutions,max_distance=1000):
    DUMMY_VAL = 10000.0
    distances = np.ones(solutions.shape[0],dtype=np.uint8)*DUMMY_VAL
    distances[solutions==1] = 0
@@ -62,7 +70,7 @@ def _solution_distance_calculate(solutions):
    closed_list = np.zeros(len(distances),dtype=np.uint8)
 
    cost = 1
-   while open_list.sum()>0:
+   while open_list.sum()>0 and cost<=max_distance:
     #gather neighbors from open list
     neighbors = gather_neighbors(open_list)
     #mark everything in open list as closed
@@ -214,7 +222,8 @@ class precomputed_maze_domain:
    #return sum(descriptor)
    x,y,_,_,_ = self.get_data(descriptor=descriptor)
 
-   return -(float(x-32)**2+float(y-20)**2)
+   #return -(float(x-32)**2+float(y-20)**2)
+   return -(float(x-270)**2+float(y-100)**2)
 
   def map_gt_fitness(self,population):
    return np.array([self.fitness(x) for x in population])
@@ -237,6 +246,9 @@ class precomputed_maze_domain:
   def behavior(self,descriptor):
    x,y = self.get_data(descriptor=descriptor)[:2]
    return x,y
+
+  def map_solution(self,population):
+   return self.data['solution'][ [self.to_idx(x) for x in population] ]
 
   def generate_random(self):
    return np.random.randint(-1,2,self.size)
@@ -272,8 +284,8 @@ class precomputed_maze_individual:
    return c 
 
 class precomputed_domain_interface():
- def __init__(self):
-   self.precompute = precomputed_maze_domain("logs/storage.dat")
+ def __init__(self,path="logs/storage.dat"):
+   self.precompute = precomputed_maze_domain(path)
    self.generator = lambda:precomputed_maze_individual(self.precompute)
    self.get_behavior = lambda x:x.behavior
    self.get_fitness = lambda x:x.fitness 
@@ -281,12 +293,14 @@ class precomputed_domain_interface():
 MAX_ARCHIVE_SIZE = 1000
 
 class search:
- def __init__(self,domain,pop_size=500,novelty=True):
+ def __init__(self,domain,pop_size=500,novelty=True,tourn_size=2,elites=1):
   self.epoch_count = 0
   self.domain = domain
   self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
   self.pop_size = pop_size
-
+  self.tourn_size = tourn_size 
+  self.elites = elites
+  
   self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
   self.archive_size = 0 
 
@@ -302,7 +316,7 @@ class search:
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size])
 
  def select(self,pop):
-  elites=1
+  elites=self.elites
   champ_idx = np.argmax(self.fitness)
   newpop = []
 
@@ -310,7 +324,7 @@ class search:
   for _ in xrange(elites):
    newpop.append(self.domain.clone(pop[champ_idx]))
   
-  tourn_size = 2
+  tourn_size = self.tourn_size
   #simple tournament selection n=2
   for _ in xrange(self.pop_size-elites):
    offs = np.random.randint(0,self.pop_size,tourn_size)
@@ -336,19 +350,39 @@ class search:
   self.population = new_population
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size]) 
   self.gt_fitness = self.map_gt_fitness(self.population,None)
- 
+  self.solved = self.domain.map_solution(self.population)
+  if (self.solved.sum()>0):
+   champ = np.argmax(self.solved)
+   print self.gt_fitness[np.argmax(self.solved)]
+   pdb.set_trace()
+   return True 
+
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
 
+def set_seeds(x):
+ random.seed(x)
+ np.random.seed(x)
+
 if __name__=='__main__': 
- domain_total = precomputed_maze_domain()
- search = search(domain_total)
+ #set_seeds(1003)
+ domain_total = precomputed_maze_domain("logs/storage_medium.dat")
+
+ for _ in range(1,5):
+  print len(nstep_evo(24354,domain_total.data['behaviorhash'],_))
+ fasd
+
+ search = search(domain_total,novelty=False,tourn_size=2)
  for _ in xrange(1000):
-  search.epoch()
+  if _%100==0:
+   print _*search.pop_size
+  sol = search.epoch()
+  if sol:
+   print "solved" 
+   break
 
-
-
+ 
 """
 test_idx = 2 #138976
 
