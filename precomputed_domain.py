@@ -56,8 +56,10 @@ def nstep_evo(idx,behaviorhash,n):
    onehot = np.zeros_like(behaviorhash)
    onehot[idx]=1
    dists= _solution_distance_calculate(onehot,max_distance=n)
-   print (dists<=n).sum()
-   return (dists<=n).nonzero()
+   reachable = (dists<=n).nonzero()
+   behaviors = np.unique(behaviorhash[reachable])
+   return behaviors.shape
+   
 
 @jit(["uint8[:](uint8[:],int64)"])
 def _solution_distance_calculate(solutions,max_distance=1000):
@@ -370,7 +372,7 @@ if __name__=='__main__':
  domain_total = precomputed_maze_domain("logs/storage_medium.dat")
 
  for _ in range(1,5):
-  print len(nstep_evo(24354,domain_total.data['behaviorhash'],_))
+  print nstep_evo(24354,domain_total.data['behaviorhash'],_)
  fasd
 
  search = search(domain_total,novelty=False,tourn_size=2)
