@@ -1,21 +1,32 @@
 import math
-import mazepy
 import random
 import numpy
 from collections import defaultdict
+import mazepy
+from numba import jit
 
 grid_sz=20
 
-def fitness(robot):
- return -mazepy.feature_detector.closest_goal(robot)
+class maze_domain:
+ def get_behavior(self,entity):
+  x=mazepy.feature_detector.endx(entity)
+  y=mazepy.feature_detector.endy(entity)
+  return x,y
+
+ def get_fitness(self,entity):
+  return -mazepy.feature_detector.end_goal(entity)
+ def generator(self):
+  return mazepy.mazenav() 
+
+default_domain = maze_domain()
 
 #a function to map a robot's behavior into a grid of niches
-def map_into_grid(robot):
- x=mazepy.feature_detector.endx(robot)
- y=mazepy.feature_detector.endy(robot)
+def map_into_grid(robot,domain=default_domain):
+ x,y = domain.get_behavior(robot)
  x_grid=int(x*(grid_sz-1))
  y_grid=int(y*(grid_sz-1))
  robot.behavior=numpy.array([x,y])
+ #print x_grid,y_grid
  return (x_grid,y_grid)
 
 def distr_entropy(grids,samples):
@@ -40,7 +51,7 @@ def most_populus(pop):
 def population_to_grids(pop):
  grids=defaultdict(float)
  for k in pop:
-  key=map_into_grid(k)
+  key=map_into_grid(k,default_domain)
   grids[key]+=1
  return grids 
 
@@ -48,7 +59,7 @@ def mutations_to_grids(robot,mutations):
  grids=defaultdict(float)
 
  robot.map()
- x1=mazepy.feature_detector.endx(robot)
+ #x1=mazepy.feature_detector.endx(robot)
 
  for x in range(mutations):
   mutant=robot.copy()
@@ -56,11 +67,11 @@ def mutations_to_grids(robot,mutations):
   mutant.map()
   #if(mutant.solution()): 
   # print "solved"
-  key=map_into_grid(mutant)
+  key=map_into_grid(mutant,default_domain)
   grids[key]+=1
 
  robot.map()
- x2=mazepy.feature_detector.endx(robot)
+ #x2=mazepy.feature_detector.endx(robot)
  #print x1,x2
 
  return grids

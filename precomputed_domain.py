@@ -90,9 +90,9 @@ def _to_idx(descriptor):
     idx+=val%3
    return idx
 @jit
-def _from_idx(idx):
-   out = np.zeros(self.size)
-   for _ in xrange(self.size-1,-1,-1):
+def _from_idx(idx,size=16):
+   out = np.zeros(size)
+   for _ in xrange(size-1,-1,-1):
     out[_] = idx%3
     idx/=3 
    return out  
@@ -106,8 +106,8 @@ def _get_data(descriptor,data):
 
 
 class precomputed_maze_domain:
-  def __init__(self):
-    self.data = self.read_in()
+  def __init__(self,fname="storage"):
+    self.data = self.read_in(fname)
     self.size = 16
     self.behavior_size = 2  
     self.solution_distance_calculate()
@@ -151,13 +151,13 @@ class precomputed_maze_domain:
 
   def solution_distance_calculate(self):
    solution_file = self.fname+".solutions.npy"
-   cached_solutions = False #os.path.isfile(solution_file)
+   cached_solutions = os.path.isfile(solution_file)
 
    if not cached_solutions:
     print "not cached..."
     data = self.data['solution']
     self.distance= _solution_distance_calculate(data)
-    np.save(solution_file,data)
+    np.save(solution_file,self.distance)
    else:
     print "cached..."
     self.distance= np.load(solution_file)
@@ -197,7 +197,7 @@ class precomputed_maze_domain:
    return _to_idx(descriptor)
 
   def from_idx(self,idx):
-   return _from_idx(idx)
+   return _from_idx(idx,self.size)
 
   def get_data(self,descriptor=None):
    return _get_data(descriptor,self.data)
@@ -247,24 +247,36 @@ class precomputed_maze_individual:
    self.domain = domain
    self.idx = 0
    self.descriptor = None
+
   def init_rand(self):
-   self.idx = domain.random_idx()
-   self.descriptor = domain.from_idx(self.idx)
+   self.idx = self.domain.random_idx()
+   self.descriptor = self.domain.from_idx(self.idx)
+
   def mutate(self):
-   self.descriptor = domain.mutate(self.descriptor)
-   self.idx = domain.to_idx(self.descriptor)
+   self.descriptor = self.domain.mutate(self.descriptor)
+   self.idx = self.domain.to_idx(self.descriptor)
+
   def map(self):
    row = self.domain.data[self.idx]
-   self.behavior = row[0],row[1]
+   self.behavior = row[0]/300.0,row[1]/300.0
    self._solution = row[-1]
    self.fitness = self.domain.fitness(self.descriptor)
+
   def solution(self):
    return self._solution
+
   def copy(self):
-   c = precomputed_maze_individual()
+   c = precomputed_maze_individual(self.domain)
    c.idx = self.idx
    c.descriptor = self.descriptor
    return c 
+
+class precomputed_domain_interface():
+ def __init__(self):
+   self.precompute = precomputed_maze_domain("logs/storage.dat")
+   self.generator = lambda:precomputed_maze_individual(self.precompute)
+   self.get_behavior = lambda x:x.behavior
+   self.get_fitness = lambda x:x.fitness 
 
 MAX_ARCHIVE_SIZE = 1000
 

@@ -1,18 +1,26 @@
-
+import pdb
+import numpy as np
 from PIL import Image, ImageDraw
 from scipy.spatial import cKDTree as kd
+import mazepy
+import precomputed_domain
+import entropy
 
-disp=False
+novelty=True
+disp=True
 SZX=SZY=400
 NS_K = 20
 ELITE = 3
 screen = None
 archive=[]
+tourn_size = 5
 
-
-
-def fitness(robot):
- return -mazepy.feature_detector.end_goal(robot)
+from entropy import *
+domain = default_domain
+precomputed = True
+if precomputed:
+ domain = precomputed_domain.precomputed_domain_interface()
+ entropy.default_domain = domain   
 
 if disp:
  import pygame
@@ -38,36 +46,38 @@ def render(pop,bd=None):
    pygame.draw.rect(screen,(0,0,col),rect,0)
 
  for robot in pop:
-  x=mazepy.feature_detector.endx(robot)*SZX
-  y=mazepy.feature_detector.endy(robot)*SZY
+  x,y = domain.get_behavior(robot)
+  x=x*SZX
+  y=y*SZY
   rect=(int(x),int(y),5,5)
   pygame.draw.rect(screen,(255,0,0),rect,0)
+
+ for robot in archive:
+  x,y = domain.get_behavior(robot)
+  x=x*SZX
+  y=y*SZY
+  rect=(int(x),int(y),5,5)
+  pygame.draw.rect(screen,(0,255,0),rect,0)
+
  pygame.display.flip()
 
-from entropy import *
 
 def eval_pop(population):
+  #pdb.set_trace()
   data=numpy.vstack([k.behavior for k in population+archive])
   tree=kd(data)  
   for art in population:
-   eval_ind_k(art,tree)
+   eval_ind(art,tree)
   return tree 
 
-def eval_ind(art,population,tree):
-   eval_ind_k(art,tree)
-   return
-   art.dists=[((art.behavior-x.behavior)**2).sum() for x in population]
-   arch_dists=[((art.behavior-x.behavior)**2).sum() for x in archive]
-   art.dists+=arch_dists
-   art.dists.sort()
-   art.raw_fitness = art.fitness
-   art.fitness = sum(art.dists[:NS_K])
-   art.fitness = fitness(art)
-
-def eval_ind_k(art,tree):
- nearest,indexes=tree.query(art.behavior,NS_K)
- art.fitness=sum(nearest)
-
+def eval_ind(art,tree):
+ if novelty:
+  nearest,indexes=tree.query(art.behavior,NS_K)
+  art.raw_fitness=domain.get_fitness(art)
+  art.fitness=nearest.sum()
+ else:
+  art.fitness=domain.get_fitness(art)
+ 
 def read_maze(fname='hard_maze.txt'):
  lines = open(fname).read().split("\n")[7:-1]
  coords = [[float(x) for x in line.split()] for line in lines]
@@ -87,7 +97,6 @@ def transform_pnt(c,xrng_o,yrng_o,xrng_n,yrng_n):
 
 def transform_line(line,xrng_old,yrng_old,xrng_new,yrng_new):
  return transform_pnt(line[0:2],xrng_old,yrng_old,xrng_new,yrng_new)+transform_pnt(line[2:],xrng_old,yrng_old,xrng_new,yrng_new)
- 
 
 def draw_maze(walls,agent,sz=64,fname=None):
  maze = Image.new('RGB',(sz,sz),(255,255,255))
@@ -145,15 +154,17 @@ if(__name__=='__main__'):
  psize=250
 
  for k in range(psize):
-  robot=mazepy.mazenav()
+  robot=domain.generator()
   robot.init_rand()
   robot.mutate()
   robot.map()
   robot.parent=None
-  behavior_density[map_into_grid(robot)]+=1
+  behavior_density[map_into_grid(robot,domain)]+=1
   population.append(robot)
 
- tree=eval_pop(population)
+ tree=None
+ if novelty:
+  tree=eval_pop(population)
  solved=False
 
  evals=psize
@@ -169,38 +180,39 @@ if(__name__=='__main__'):
    if(disp):
     render(population,behavior_density)
  
-  parents=random.sample(population,3)
+  parents=random.sample(population,tourn_size)
   parent=reduce(lambda x,y:x if x.fitness>y.fitness else y,parents)
+
   child=parent.copy()
   child.mutate()
   child.parent=parent
   child.map()
 
-  if True:
+  if False:
    x=mazepy.feature_detector.endx(child)
    y=mazepy.feature_detector.endy(child)
    print child.get_x()
    print child.get_y()
    print child.get_heading()
    img=draw_maze(maze_desc,(child.get_x(),child.get_y(),child.get_heading()),fname='imgs/%d-%d.png'%(child.get_x(),child.get_y()))
-    
 
   population.append(child)
-  behavior_density[map_into_grid(child)]+=1
+  behavior_density[map_into_grid(child,domain)]+=1
 
-  if(evals%25!=0):
-   eval_ind(child,population,tree) 
+  if(evals%50!=0):
+   eval_ind(child,tree) 
   else:
-   eval_pop(population)
+   if novelty:
+    eval_pop(population)
 
   if(child.solution()):
     solved=True
   if(random.random()<0.01):
    archive.append(child)
-
-  to_kill=random.sample(population,3)
-  to_kill=reduce(lambda x,y:x if x.fitness<y.fitness else y,parents)
-  population.remove(to_kill)
+  to_kill_idx=np.random.randint(0,len(population),3)
+  to_kill_idx=reduce(lambda x,y:x if population[x].fitness<population[y].fitness else y,to_kill_idx)
+  to_kill=population[to_kill_idx]
+  population=population[:to_kill_idx]+population[to_kill_idx+1:]
   del to_kill
 
 
@@ -210,10 +222,12 @@ if(__name__=='__main__'):
  print child.solution()
  print "evolvability:", evo_fnc(child,1000)
 
+ """
  robot=mazepy.mazenav()
  robot.init_rand()
  robot.mutate()
  robot.map()
  print "evolvability:", evo_fnc(robot,1000)
- 
+ """
+
  optimize_evolvability(child)
