@@ -116,11 +116,16 @@ def _get_data(descriptor,data):
 
 
 class precomputed_maze_domain:
-  def __init__(self,fname="storage"):
-    self.data = self.read_in(fname)
+  def __init__(self,maze="hard"):
+    self.maze= maze
+    self.data = self.read_in("storage_"+maze+".dat")
     self.size = 16
     self.behavior_size = 2  
     self.solution_distance_calculate()
+    if maze=='hard':
+     self.goal=(32,20)
+    if maze=='medium':
+     self.goal=(36,184)
 
   def read_in(self,fname='storage.dat'):
    self.fname = fname
@@ -220,12 +225,18 @@ class precomputed_maze_domain:
    descriptor[idx] = np.random.randint(-1,2)
    return descriptor 
 
+  def evolvability(self,descriptor):
+   _,_,evo,_,_ = self.get_data(descriptor=descriptor)
+   return evo
+   
   def fitness(self,descriptor):
    #return sum(descriptor)
    x,y,_,_,_ = self.get_data(descriptor=descriptor)
 
-   #return -(float(x-32)**2+float(y-20)**2)
-   return -(float(x-270)**2+float(y-100)**2)
+   return -(float(x-self.goal[0])**2+float(y-self.goal[1])**2)
+
+  def map_evolvability(self,population):
+   return np.array([self.evolvability(x) for x in population])   
 
   def map_gt_fitness(self,population):
    return np.array([self.fitness(x) for x in population])
@@ -305,7 +316,9 @@ class search:
   
   self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
   self.archive_size = 0 
+  self.archive_ptr = 0
 
+  self.map_evolvability = self.domain.map_evolvability
   self.map_fitness = lambda x,y:self.domain.map_fitness(x)
   if novelty:
    self.map_fitness = lambda x,y:self.domain.map_novelty(x,y)
@@ -316,6 +329,7 @@ class search:
   self.best_gt = -1e10
 
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size])
+  self.evolvability = self.map_evolvability(self.population)
 
  def select(self,pop):
   elites=self.elites
@@ -346,12 +360,20 @@ class search:
   self.epoch_count+=1
   new_population = self.select(self.population)
 
-  self.archive[self.archive_size] = self.domain.map_behavior([random.choice(self.population)])[0]
-  self.archive_size+=1
+  for _ in xrange(1):
+   if self.archive_ptr>=MAX_ARCHIVE_SIZE:
+    self.archive_ptr = self.archive_ptr % MAX_ARCHIVE_SIZE
+   self.archive[self.archive_ptr] = self.domain.map_behavior([random.choice(self.population)])[0]
 
+   if self.archive_size<MAX_ARCHIVE_SIZE:
+    self.archive_size+=1
+
+   self.archive_ptr+=1
+   
   self.population = new_population
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size]) 
   self.gt_fitness = self.map_gt_fitness(self.population,None)
+  self.evolvability = self.map_evolvability(self.population)
   self.solved = self.domain.map_solution(self.population)
   if (self.solved.sum()>0):
    champ = np.argmax(self.solved)
@@ -359,6 +381,7 @@ class search:
    pdb.set_trace()
    return True 
 
+  #print self.evolvability.max(),self.evolvability.mean(),self.evolvability.min() 
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
