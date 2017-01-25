@@ -51,8 +51,18 @@ def gather_neighbors(olist):
     neighbors[_get_neighbors(idx)]=1
    return neighbors
 
-@jit(["uint8[:](uint8[:])"])
-def _solution_distance_calculate(solutions):
+@jit
+def nstep_evo(idx,behaviorhash,n):
+   onehot = np.zeros_like(behaviorhash)
+   onehot[idx]=1
+   dists= _solution_distance_calculate(onehot,max_distance=n)
+   reachable = (dists<=n).nonzero()
+   behaviors = np.unique(behaviorhash[reachable])
+   return behaviors.shape
+   
+
+@jit(["uint8[:](uint8[:],int64)"])
+def _solution_distance_calculate(solutions,max_distance=1000):
    DUMMY_VAL = 10000.0
    distances = np.ones(solutions.shape[0],dtype=np.uint8)*DUMMY_VAL
    distances[solutions==1] = 0
@@ -62,7 +72,7 @@ def _solution_distance_calculate(solutions):
    closed_list = np.zeros(len(distances),dtype=np.uint8)
 
    cost = 1
-   while open_list.sum()>0:
+   while open_list.sum()>0 and cost<=max_distance:
     #gather neighbors from open list
     neighbors = gather_neighbors(open_list)
     #mark everything in open list as closed
@@ -90,9 +100,9 @@ def _to_idx(descriptor):
     idx+=val%3
    return idx
 @jit
-def _from_idx(idx):
-   out = np.zeros(self.size)
-   for _ in xrange(self.size-1,-1,-1):
+def _from_idx(idx,size=16):
+   out = np.zeros(size)
+   for _ in xrange(size-1,-1,-1):
     out[_] = idx%3
     idx/=3 
    return out  
@@ -104,17 +114,13 @@ def _get_data(descriptor,data):
 
    return data[idx] 
 
+
 class precomputed_maze_domain:
-  def __init__(self,maze="hard"):
-    self.maze= maze
-    self.data = self.read_in("storage_"+maze+".dat")
+  def __init__(self,fname="storage"):
+    self.data = self.read_in(fname)
     self.size = 16
     self.behavior_size = 2  
     self.solution_distance_calculate()
-    if maze=='hard':
-     self.goal=(32,20)
-    if maze=='medium':
-     self.goal=(36,184)
 
   def read_in(self,fname='storage.dat'):
    self.fname = fname
@@ -201,7 +207,7 @@ class precomputed_maze_domain:
    return _to_idx(descriptor)
 
   def from_idx(self,idx):
-   return _from_idx(idx)
+   return _from_idx(idx,self.size)
 
   def get_data(self,descriptor=None):
    return _get_data(descriptor,self.data)
@@ -214,18 +220,12 @@ class precomputed_maze_domain:
    descriptor[idx] = np.random.randint(-1,2)
    return descriptor 
 
-  def evolvability(self,descriptor):
-   _,_,evo,_,_ = self.get_data(descriptor=descriptor)
-   return evo
-   
   def fitness(self,descriptor):
    #return sum(descriptor)
    x,y,_,_,_ = self.get_data(descriptor=descriptor)
 
-   return -(float(x-self.goal[0])**2+float(y-self.goal[1])**2)
-
-  def map_evolvability(self,population):
-   return np.array([self.evolvability(x) for x in population])   
+   #return -(float(x-32)**2+float(y-20)**2)
+   return -(float(x-270)**2+float(y-100)**2)
 
   def map_gt_fitness(self,population):
    return np.array([self.fitness(x) for x in population])
@@ -249,6 +249,9 @@ class precomputed_maze_domain:
    x,y = self.get_data(descriptor=descriptor)[:2]
    return x,y
 
+  def map_solution(self,population):
+   return self.data['solution'][ [self.to_idx(x) for x in population] ]
+
   def generate_random(self):
    return np.random.randint(-1,2,self.size)
 
@@ -258,39 +261,51 @@ class precomputed_maze_individual:
    self.domain = domain
    self.idx = 0
    self.descriptor = None
+
   def init_rand(self):
-   self.idx = domain.random_idx()
-   self.descriptor = domain.from_idx(self.idx)
+   self.idx = self.domain.random_idx()
+   self.descriptor = self.domain.from_idx(self.idx)
+
   def mutate(self):
-   self.descriptor = domain.mutate(self.descriptor)
-   self.idx = domain.to_idx(self.descriptor)
+   self.descriptor = self.domain.mutate(self.descriptor)
+   self.idx = self.domain.to_idx(self.descriptor)
+
   def map(self):
    row = self.domain.data[self.idx]
-   self.behavior = row[0],row[1]
+   self.behavior = row[0]/300.0,row[1]/300.0
    self._solution = row[-1]
    self.fitness = self.domain.fitness(self.descriptor)
+
   def solution(self):
    return self._solution
+
   def copy(self):
-   c = precomputed_maze_individual()
+   c = precomputed_maze_individual(self.domain)
    c.idx = self.idx
    c.descriptor = self.descriptor
    return c 
 
+class precomputed_domain_interface():
+ def __init__(self,path="logs/storage.dat"):
+   self.precompute = precomputed_maze_domain(path)
+   self.generator = lambda:precomputed_maze_individual(self.precompute)
+   self.get_behavior = lambda x:x.behavior
+   self.get_fitness = lambda x:x.fitness 
+
 MAX_ARCHIVE_SIZE = 1000
 
 class search:
- def __init__(self,domain,pop_size=500,novelty=False):
+ def __init__(self,domain,pop_size=500,novelty=True,tourn_size=2,elites=1):
   self.epoch_count = 0
   self.domain = domain
   self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
   self.pop_size = pop_size
-
+  self.tourn_size = tourn_size 
+  self.elites = elites
+  
   self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
   self.archive_size = 0 
-  self.archive_ptr = 0
 
-  self.map_evolvability = self.domain.map_evolvability
   self.map_fitness = lambda x,y:self.domain.map_fitness(x)
   if novelty:
    self.map_fitness = lambda x,y:self.domain.map_novelty(x,y)
@@ -301,10 +316,9 @@ class search:
   self.best_gt = -1e10
 
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size])
-  self.evolvability = self.map_evolvability(self.population)
 
  def select(self,pop):
-  elites=1
+  elites=self.elites
   champ_idx = np.argmax(self.fitness)
   newpop = []
 
@@ -312,7 +326,7 @@ class search:
   for _ in xrange(elites):
    newpop.append(self.domain.clone(pop[champ_idx]))
   
-  tourn_size = 2
+  tourn_size = self.tourn_size
   #simple tournament selection n=2
   for _ in xrange(self.pop_size-elites):
    offs = np.random.randint(0,self.pop_size,tourn_size)
@@ -332,34 +346,45 @@ class search:
   self.epoch_count+=1
   new_population = self.select(self.population)
 
-  for _ in xrange(1):
-   if self.archive_ptr>=MAX_ARCHIVE_SIZE:
-    self.archive_ptr = self.archive_ptr % MAX_ARCHIVE_SIZE
-   self.archive[self.archive_ptr] = self.domain.map_behavior([random.choice(self.population)])[0]
+  self.archive[self.archive_size] = self.domain.map_behavior([random.choice(self.population)])[0]
+  self.archive_size+=1
 
-   if self.archive_size<MAX_ARCHIVE_SIZE:
-    self.archive_size+=1
-
-   self.archive_ptr+=1
-   
   self.population = new_population
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size]) 
   self.gt_fitness = self.map_gt_fitness(self.population,None)
-  self.evolvability = self.map_evolvability(self.population)
+  self.solved = self.domain.map_solution(self.population)
+  if (self.solved.sum()>0):
+   champ = np.argmax(self.solved)
+   print self.gt_fitness[np.argmax(self.solved)]
+   pdb.set_trace()
+   return True 
 
-  #print self.evolvability.max(),self.evolvability.mean(),self.evolvability.min() 
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
 
+def set_seeds(x):
+ random.seed(x)
+ np.random.seed(x)
+
 if __name__=='__main__': 
- domain_total = precomputed_maze_domain('medium')
+ #set_seeds(1003)
+ domain_total = precomputed_maze_domain("logs/storage_medium.dat")
 
- #evolvability vs behavior
- search = search(domain_total,novelty=False)
+ for _ in range(1,5):
+  print nstep_evo(24354,domain_total.data['behaviorhash'],_)
+ fasd
+
+ search = search(domain_total,novelty=False,tourn_size=2)
  for _ in xrange(1000):
-  search.epoch()
+  if _%100==0:
+   print _*search.pop_size
+  sol = search.epoch()
+  if sol:
+   print "solved" 
+   break
 
+ 
 """
 test_idx = 2 #138976
 
