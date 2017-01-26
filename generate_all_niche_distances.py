@@ -18,8 +18,7 @@ if __name__=='__main__':
  niches = np.unique( domain.data["behaviorhash"])
  jobs = []
 
- pdb.set_trace()
- for niche in niches[:10]:
+ for niche in niches[:]:
   jobs.append((maze,niche))
 
  p = Pool(processes=5) 

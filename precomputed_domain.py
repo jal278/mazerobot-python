@@ -128,7 +128,7 @@ def _solution_distance_calculate(solutions,max_distance=1000,verbose=False):
      print cost 
     if cost>20:
      break
-   return distances
+   return distances 
 
 @jit
 def _to_idx(descriptor):
@@ -209,14 +209,13 @@ class precomputed_maze_domain:
    if not cached_solutions:
     print "not cached..."
     data = self.data['behaviorhash']==niche
-    self.niche_distance[niche] = _solution_distance_calculate(data)
+    self.niche_distance[niche] = _solution_distance_calculate(data).astype(np.uint8)
     np.save(solution_file,self.niche_distance[niche])
     del self.niche_distance[niche]
     self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
    else:
     print "cached..."
     self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
-
 
   def solution_distance_calculate(self):
    solution_file = self.fname+".solutions.npy"
@@ -226,6 +225,7 @@ class precomputed_maze_domain:
     print "not cached..."
     data = self.data['solution']
     self.distance= _solution_distance_calculate(data)
+    self.distance=self.distance.astype(np.uint8)
     np.save(solution_file,self.distance)
    else:
     print "cached..."
