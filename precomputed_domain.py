@@ -449,6 +449,17 @@ def _do_nstep_evo(rng1,rng2,behavior,steps):
  for z in xrange(rng1,rng2):
   out = _get_evo(z,behavior,steps)
 
+def load_all_niche_distances(domain):
+ niches = np.unique( domain.data["behaviorhash"])
+ for niche in niches:
+  domain.niche_distance_calculate(niche)
+ 
+def evolvability_distribution(idx,domain):
+ niches = np.unique( domain.data["behaviorhash"])
+ distribution = {}
+ for niche in niches:
+  distribution[niche] = domain.niche_distance[niche][idx]
+ return distribution
 
 if __name__=='__main__': 
  #set_seeds(1003)
