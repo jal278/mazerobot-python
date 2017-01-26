@@ -456,7 +456,8 @@ if __name__=='__main__':
  
  pdb.set_trace()
  idx = 2534
- 
+
+ """ 
  before = time.time()
  _do_nstep_evo(0,100000,domain_total.data["behaviorhash"],3)
  after = time.time()
@@ -464,7 +465,7 @@ if __name__=='__main__':
 
  print domain_total.data["evolvability"][idx]
  fasd
-
+ """
  search = search(domain_total,novelty=False,tourn_size=2)
  for _ in xrange(1000):
   if _%100==0:
