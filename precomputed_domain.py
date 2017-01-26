@@ -453,19 +453,28 @@ def load_all_niche_distances(domain):
  niches = np.unique( domain.data["behaviorhash"])
  for niche in niches:
   domain.niche_distance_calculate(niche)
- 
-def evolvability_distribution(idx,domain):
- niches = np.unique( domain.data["behaviorhash"])
+
+@jit 
+def evolvability_distribution(idx,niche_distance,niches):
  distribution = {}
  for niche in niches:
-  distribution[niche] = domain.niche_distance[niche][idx]
+  distribution[niche] = niche_distance[niche][idx]
  return distribution
 
 if __name__=='__main__': 
  #set_seeds(1003)
  domain_total = precomputed_maze_domain("medium")
- 
+ niches = np.unique( domain_total.data["behaviorhash"])
+ load_all_niche_distances(domain_total)
+
+ import time
+ before=time.time()
+ for x in xrange(1000000):
+  evolvability_distribution(x,domain_total.niche_distance,niches)
+ after=time.time()
+ print after-before
  pdb.set_trace()
+
  idx = 2534
 
  """ 
