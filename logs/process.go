@@ -115,14 +115,12 @@ func main() {
  process_file(file,behaviorMap)
  }
 
-
  genome_count:=uint32(math.Pow(3,16))
- //genome_count=uint32(300000)
  fmt.Println(genome_count)
 
  outfile,_ := os.Create("storage.dat")
  defer outfile.Close()
- //fmt.Println(binary.LittleEndian) 
+
  buf:=new(bytes.Buffer)
  for x:=uint32(0); x<genome_count;x++ {
   if x%200000==0 {
@@ -137,7 +135,6 @@ func main() {
   outfile.Write(buf.Bytes())
   buf.Reset()
  }
-
 
  if *memprofile != "" { 
   f,_:=os.Create(*memprofile)

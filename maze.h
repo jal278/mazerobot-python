@@ -423,7 +423,8 @@ public:
         reachgoal=0;
         closest_to_poi = 100000.0;
         closest_to_target = 100000.0;
-        goalattract=true;
+        goalattract=false;
+
         //read in line segments
         for(int i=0; i<num_lines; i++)
         {

@@ -1,3 +1,4 @@
+import time
 import random
 import numpy as np
 import pdb
@@ -43,6 +44,43 @@ def _get_neighbors(idx,size=16):
    return n
 
 @jit
+def _add_to_neighbors(idx,n,cnt,size=16):
+   leading = idx
+   discarded = 0 
+   for it in range(size):
+    digit = leading%3
+    leading -= digit
+
+    for permut in range(3):
+     n[cnt]= (leading+permut)*(3**it) + discarded 
+     cnt+=1
+
+    discarded += digit*(3**it)
+    leading/=3 
+   return cnt 
+
+@jit
+def _get_evo(idx,behavior,steps=3,size=16):
+ sz = 0
+ for x in range(steps+1):
+  sz+= (3*size)**x
+ 
+ n=np.zeros( sz,dtype=np.int64)
+
+ n[0]=idx
+ cnt = 1
+ cnt_old = 0
+ for step in xrange(steps):
+  cnt_cached = cnt
+  for genome in xrange(cnt_old,cnt):
+   cnt = _add_to_neighbors(n[genome],n,cnt)
+  cnt_old = cnt_cached
+  #print cnt-cnt_old 
+  #print n.shape
+ total_idxes = n
+ return np.unique(behavior[total_idxes]).shape
+
+@jit
 def gather_neighbors(olist):
    neighbors=np.zeros_like(olist,dtype=np.uint8)
    idxes = olist.nonzero()[0]
@@ -55,14 +93,13 @@ def gather_neighbors(olist):
 def nstep_evo(idx,behaviorhash,n):
    onehot = np.zeros_like(behaviorhash)
    onehot[idx]=1
-   dists= _solution_distance_calculate(onehot,max_distance=n)
+   dists= _solution_distance_calculate(onehot,max_distance=n,verbose=False)
    reachable = (dists<=n).nonzero()
    behaviors = np.unique(behaviorhash[reachable])
    return behaviors.shape
-   
 
-@jit(["uint8[:](uint8[:],int64)"])
-def _solution_distance_calculate(solutions,max_distance=1000):
+@jit(["uint8[:](uint8[:],int64,int16)"])
+def _solution_distance_calculate(solutions,max_distance=1000,verbose=False):
    DUMMY_VAL = 10000.0
    distances = np.ones(solutions.shape[0],dtype=np.uint8)*DUMMY_VAL
    distances[solutions==1] = 0
@@ -87,7 +124,8 @@ def _solution_distance_calculate(solutions,max_distance=1000):
 
     open_list[(neighbors==1)]=1
     cost+=1
-    print cost 
+    if verbose:
+     print cost 
     if cost>20:
      break
    return distances
@@ -114,18 +152,18 @@ def _get_data(descriptor,data):
 
    return data[idx] 
 
-
 class precomputed_maze_domain:
   def __init__(self,maze="hard"):
     self.maze= maze
-    self.data = self.read_in("storage_"+maze+".dat")
+    self.data = self.read_in("logs/storage_"+maze+".dat")
     self.size = 16
     self.behavior_size = 2  
     self.solution_distance_calculate()
+    self.niche_distance = {}
     if maze=='hard':
-     self.goal=(32,20)
+     self.goal=(31,20)
     if maze=='medium':
-     self.goal=(36,184)
+     self.goal=(270,100)
 
   def read_in(self,fname='storage.dat'):
    self.fname = fname
@@ -163,11 +201,27 @@ class precomputed_maze_domain:
    for idx in idxes:
     neighbors[self.get_neighbors(idx)]=1
    return neighbors
+ 
+  def niche_distance_calculate(self,niche=0):
+   solution_file = self.fname+".niche%d.npy"%niche
+   cached_solutions = os.path.isfile(solution_file)
+
+   if not cached_solutions:
+    print "not cached..."
+    data = self.data['behaviorhash']==niche
+    self.niche_distance[niche] = _solution_distance_calculate(data)
+    np.save(solution_file,self.niche_distance[niche])
+    del self.niche_distance[niche]
+    self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
+   else:
+    print "cached..."
+    self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
+
 
   def solution_distance_calculate(self):
    solution_file = self.fname+".solutions.npy"
    cached_solutions = os.path.isfile(solution_file)
-
+   
    if not cached_solutions:
     print "not cached..."
     data = self.data['solution']
@@ -390,12 +444,25 @@ def set_seeds(x):
  random.seed(x)
  np.random.seed(x)
 
+@jit
+def _do_nstep_evo(rng1,rng2,behavior,steps):
+ for z in xrange(rng1,rng2):
+  out = _get_evo(z,behavior,steps)
+
+
 if __name__=='__main__': 
  #set_seeds(1003)
- domain_total = precomputed_maze_domain("logs/storage_medium.dat")
+ domain_total = precomputed_maze_domain("medium")
+ 
+ pdb.set_trace()
+ idx = 2534
+ 
+ before = time.time()
+ _do_nstep_evo(0,100000,domain_total.data["behaviorhash"],3)
+ after = time.time()
+ print after-before
 
- for _ in range(1,5):
-  print nstep_evo(24354,domain_total.data['behaviorhash'],_)
+ print domain_total.data["evolvability"][idx]
  fasd
 
  search = search(domain_total,novelty=False,tourn_size=2)

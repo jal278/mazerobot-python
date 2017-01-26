@@ -18,7 +18,7 @@ if __name__=='__main__':
  offset = 0
  max_size = 200000
  total = 3**16
- maze="hard_maze_list.txt"
+ maze="medium_maze_list.txt"
  while True:
   output = "logs/out%d.txt" % index
   remaining = total-index
