@@ -153,13 +153,17 @@ def _get_data(descriptor,data):
    return data[idx] 
 
 class precomputed_maze_domain:
-  def __init__(self,maze="hard"):
+  def __init__(self,maze="hard",storage_directory="/home/joel/evodata/logs",mmap=False):
     self.maze= maze
-    self.data = self.read_in("logs/storage_"+maze+".dat")
+    self.storage_directory = storage_directory
+    self.data = self.read_in( ("%s/storage_"%storage_directory)+maze+".dat" )
     self.size = 16
     self.behavior_size = 2  
     self.solution_distance_calculate()
     self.niche_distance = {}
+    self.evo = {}
+    self.mmap=mmap
+
     if maze=='hard':
      self.goal=(31,20)
     if maze=='medium':
@@ -206,16 +210,67 @@ class precomputed_maze_domain:
    solution_file = self.fname+".niche%d.npy"%niche
    cached_solutions = os.path.isfile(solution_file)
 
+   mmap=None
+   if self.mmap==True: 
+    mmap='r+'
+
    if not cached_solutions:
     print "not cached..."
     data = self.data['behaviorhash']==niche
     self.niche_distance[niche] = _solution_distance_calculate(data).astype(np.uint8)
     np.save(solution_file,self.niche_distance[niche])
     del self.niche_distance[niche]
-    self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
+   
+
+    self.niche_distance[niche] = np.load(solution_file,mmap_mode=mmap)
    else:
     print "cached..."
-    self.niche_distance[niche] = np.load(solution_file,mmap_mode='r')
+    
+    self.niche_distance[niche] = np.load(solution_file,mmap_mode=mmap)
+
+  def load_all_niche_distances(self):
+   niches = np.unique( self.data["behaviorhash"])
+   for niche in niches:
+    self.niche_distance_calculate(niche)
+
+  def kstep_evolvability_calculate(self,k):
+   global evo_distribution
+   niches = np.unique( self.data["behaviorhash"])
+  
+   evo_distribution = np.zeros(len(niches))
+
+   evo_file = self.fname+".evo%d.npy"%k
+   cached_solutions = os.path.isfile(evo_file) 
+   if not cached_solutions:
+    print "not cached..."  
+
+    self.load_all_niche_distances()
+    niche_distance = self.niche_distance.values()
+    self.evo[k] = _kstep_evolvability_calculate(niche_distance,k)
+    self.evo[k] = self.evo[k].astype(np.uint16)
+    np.save(evo_file,self.evo[k])
+   else:
+    print "cached..."
+    self.evo[k]= np.load(evo_file)
+
+  def everywhere_evolvability_calculate(self):
+   global evo_distribution
+   niches = np.unique( self.data["behaviorhash"])
+   evo_distribution = np.zeros(len(niches))
+
+   evo_file = self.fname+".evoall.npy"
+   cached_solutions = os.path.isfile(evo_file) 
+   if not cached_solutions:
+    print "not cached..."  
+    self.load_all_niche_distances()
+    niche_distance = self.niche_distance.values()
+    self.evo_everywhere  = _everywhere_evolvability_calculate(niche_distance)
+    self.evo_everywhere =  self.evo_everywhere.astype(np.float32)
+    np.save(evo_file,self.evo_everywhere)
+
+   else:
+    print "cached..."
+    self.evo_everywhere = np.load(evo_file)
 
   def solution_distance_calculate(self):
    solution_file = self.fname+".solutions.npy"
@@ -435,7 +490,7 @@ class search:
    pdb.set_trace()
    return True 
 
-  #print self.evolvability.max(),self.evolvability.mean(),self.evolvability.min() 
+  print self.evolvability.max(),self.evolvability.mean(),self.evolvability.min() 
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
@@ -449,32 +504,76 @@ def _do_nstep_evo(rng1,rng2,behavior,steps):
  for z in xrange(rng1,rng2):
   out = _get_evo(z,behavior,steps)
 
-def load_all_niche_distances(domain):
- niches = np.unique( domain.data["behaviorhash"])
- for niche in niches:
-  domain.niche_distance_calculate(niche)
+evo_distribution = None
+@jit
+def evolvability_distribution(idx,niche_distance,evo_distribution):
+ for k in xrange(len(niche_distance)):
+  evo_distribution[k] = niche_distance[k][idx]
 
-@jit 
-def evolvability_distribution(idx,niche_distance,niches):
- distribution = {}
- for niche in niches:
-  distribution[niche] = niche_distance[niche][idx]
- return distribution
+def _kstep_evolvability_accum(evo,niche,k):
+ lt = ((niche<=k)).astype(np.uint16)
+ evo += lt
+
+def _kstep_evolvability_calculate(niche_distance,k):
+ sz = niche_distance[0].shape[0]
+ evo = np.zeros(sz,dtype=np.uint16)
+ for _,niche in enumerate(niche_distance):
+  _kstep_evolvability_accum(evo,niche,k)
+  print _,evo.max()
+ return evo
+
+def _everywhere_evolvability_calculate(niche_distance):
+ sz = niche_distance[0].shape[0]
+ evo = np.zeros(sz,dtype=np.uint16)
+ for _,niche in enumerate(niche_distance):
+  evo += niche
+  print _,evo.min()
+ return evo/float(len(niche_distance))
+
+"""
+@jit(nopython=True)
+def _kstep_evolvability_calculate(niche_distance,k):
+ sz = niche_distance[0].shape[0]
+ evo = np.zeros(sz,dtype=np.uint16)
+ for x in xrange(sz):
+  if x%100000==0:
+   print x
+  evolvability_distribution(x,niche_distance,evo_distribution)
+  evo[x] = (evo_distribution<=k).sum()
+ return evo
+"""
+
+#testing efficiency of calculating evolvability distribution
+def stress_test_evo_dist(amt,niche_distance,niches):
+ global evo_distribution
+ evo_distribution = np.zeros(len(niches))
+
+ before=time.time()
+ x=0
+ niche_labels = niche_distance.keys()
+ niche_distance = niche_distance.values()
+ pdb.set_trace()
+ for x in xrange(amt):
+  evolvability_distribution(x,niche_distance,evo_distribution)
+  x+=1
+ after=time.time()
+ print after-before
+
 
 if __name__=='__main__': 
  #set_seeds(1003)
- domain_total = precomputed_maze_domain("medium")
+ domain_total = precomputed_maze_domain("medium",mmap=True)
  niches = np.unique( domain_total.data["behaviorhash"])
- load_all_niche_distances(domain_total)
+ #load_all_niche_distances(domain_total)
 
- import time
- before=time.time()
- for x in xrange(1000000):
-  evolvability_distribution(x,domain_total.niche_distance,niches)
- after=time.time()
- print after-before
- pdb.set_trace()
-
+ domain_total.everywhere_evolvability_calculate()
+ """
+ for k in range(1,19):
+  print "STEP %d"%k
+  domain_total.kstep_evolvability_calculate(k)
+  del domain_total.evo[k]
+ """
+ afsd
  idx = 2534
 
  """ 
@@ -486,6 +585,7 @@ if __name__=='__main__':
  print domain_total.data["evolvability"][idx]
  fasd
  """
+
  search = search(domain_total,novelty=False,tourn_size=2)
  for _ in xrange(1000):
   if _%100==0:
