@@ -334,6 +334,14 @@ class precomputed_maze_domain:
    descriptor[idx] = np.random.randint(-1,2)
    return descriptor 
 
+  def evolvability_ev(self,descriptor):
+   idx = _to_idx(descriptor)
+   return -self.evo_everywhere[idx]
+
+  def evolvability_ks(self,descriptor,k):
+   idx = _to_idx(descriptor)
+   return self.evo[k][idx]
+
   def evolvability(self,descriptor):
    _,_,evo,_,_ = self.get_data(descriptor=descriptor)
    return evo
@@ -344,7 +352,10 @@ class precomputed_maze_domain:
 
    return -(float(x-self.goal[0])**2+float(y-self.goal[1])**2)
 
-  def map_evolvability(self,population):
+  def map_evolvability(self,population,ks=False):
+   #return np.array([self.evolvability_ev(x) for x in population])   
+   if ks !=False:
+    return np.array([self.evolvability_ks(x,ks) for x in population])   
    return np.array([self.evolvability(x) for x in population])   
 
   def map_gt_fitness(self,population):
@@ -415,7 +426,8 @@ class precomputed_domain_interface():
 MAX_ARCHIVE_SIZE = 1000
 
 class search:
- def __init__(self,domain,pop_size=500,novelty=True,tourn_size=2,elites=1):
+ def __init__(self,domain,pop_size=500,novelty=False,tourn_size=2,elites=1,evolvability=False):
+  self.evo = 0
   self.epoch_count = 0
   self.domain = domain
   self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
@@ -429,6 +441,10 @@ class search:
 
   self.map_evolvability = self.domain.map_evolvability
   self.map_fitness = lambda x,y:self.domain.map_fitness(x)
+
+  if evolvability:
+   self.map_fitness = lambda x,y:self.domain.map_evolvability(x,ks=4) 
+
   if novelty:
    self.map_fitness = lambda x,y:self.domain.map_novelty(x,y)
 
@@ -566,15 +582,15 @@ if __name__=='__main__':
  niches = np.unique( domain_total.data["behaviorhash"])
  #load_all_niche_distances(domain_total)
 
+ domain_total.kstep_evolvability_calculate(4)
  domain_total.everywhere_evolvability_calculate()
+
  """
  for k in range(1,19):
   print "STEP %d"%k
   domain_total.kstep_evolvability_calculate(k)
   del domain_total.evo[k]
  """
- afsd
- idx = 2534
 
  """ 
  before = time.time()
@@ -586,7 +602,7 @@ if __name__=='__main__':
  fasd
  """
 
- search = search(domain_total,novelty=False,tourn_size=2)
+ search = search(domain_total,novelty=False,tourn_size=10,evolvability=False)
  for _ in xrange(1000):
   if _%100==0:
    print _*search.pop_size
