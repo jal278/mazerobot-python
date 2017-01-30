@@ -578,11 +578,12 @@ def stress_test_evo_dist(amt,niche_distance,niches):
 
 if __name__=='__main__': 
  #set_seeds(1003)
- domain_total = precomputed_maze_domain("medium",mmap=True)
+ domain_total = precomputed_maze_domain("medium",storage_directory="logs/",mmap=True)
  niches = np.unique( domain_total.data["behaviorhash"])
  #load_all_niche_distances(domain_total)
 
- domain_total.kstep_evolvability_calculate(4)
+ for k in range(1,9):
+  domain_total.kstep_evolvability_calculate(k)
  domain_total.everywhere_evolvability_calculate()
 
  """
