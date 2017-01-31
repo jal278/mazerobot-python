@@ -16,13 +16,13 @@ archive=[]
 if novelty:
  tourn_size = 2
 else:
- tourn_size = 10
+ tourn_size = 3
 
 from entropy import *
 domain = default_domain
 precomputed = True
 if precomputed:
- domain = precomputed_domain.precomputed_domain_interface("logs/storage_medium.dat")
+ domain = precomputed_domain.precomputed_domain_interface("medium")
  entropy.default_domain = domain 
 
 if disp:
@@ -212,6 +212,7 @@ if(__name__=='__main__'):
   
   if(child.solution()):
     solved=True
+ 
   if(random.random()<0.01):
    archive.append(child)
 

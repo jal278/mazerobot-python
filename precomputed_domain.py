@@ -90,6 +90,25 @@ def gather_neighbors(olist):
    return neighbors
 
 @jit
+def distance(g1,g2):
+    dist = np.abs(g1-g2).sum()
+    return dist
+
+@jit
+def distance_matrix(genomes):
+    sz = len(genomes)
+    matrix = np.zeros((sz,sz))
+    for i in xrange(sz):
+        for j in xrange(sz):
+          matrix[i,j]=distance(genomes[i],genomes[j])
+    return matrix
+
+def diversity_score(population):
+     matrix = distance_matrix(population)
+     score = matrix.mean(0)
+     return score
+
+@jit
 def nstep_evo(idx,behaviorhash,n):
    onehot = np.zeros_like(behaviorhash)
    onehot[idx]=1
@@ -136,7 +155,8 @@ def _to_idx(descriptor):
    for val in descriptor:
     idx*=3
     idx+=val%3
-   return idx
+   return int(idx)
+
 @jit
 def _from_idx(idx,size=16):
    out = np.zeros(size)
@@ -149,7 +169,6 @@ def _from_idx(idx,size=16):
 def _get_data(descriptor,data):
    #if idx==None:
    idx=_to_idx(descriptor)
-
    return data[idx] 
 
 class precomputed_maze_domain:
@@ -349,7 +368,6 @@ class precomputed_maze_domain:
   def fitness(self,descriptor):
    #return sum(descriptor)
    x,y,_,_,_ = self.get_data(descriptor=descriptor)
-
    return -(float(x-self.goal[0])**2+float(y-self.goal[1])**2)
 
   def map_evolvability(self,population,ks=False):
@@ -367,7 +385,10 @@ class precomputed_maze_domain:
    return nov
 
   def map_fitness(self,population):
-   return np.array([self.fitness(x) for x in population])
+    idxes = [self.to_idx(x) for x in population]
+    x=self.data['x'][idxes].astype(np.float32)
+    y=self.data['y'][idxes].astype(np.float32)
+    return -((x-self.goal[0])**2 + (y-self.goal[1])**2) #np.array([self.fitness(x) for x in population])
 
   def map_behavior(self,population):
    idxes = [self.to_idx(x) for x in population]
@@ -380,13 +401,17 @@ class precomputed_maze_domain:
    x,y = self.get_data(descriptor=descriptor)[:2]
    return x,y
 
+  def norm_behavior(self,descriptor):
+   idx = self.to_idx(descriptor)
+   x,y = self.data['x'][idx],self.data['y'][idx] #get_data(descriptor=descriptor)[:2]
+   return x/300.0,y/300.0
+
   def map_solution(self,population):
    return self.data['solution'][ [self.to_idx(x) for x in population] ]
 
   def generate_random(self):
    return np.random.randint(-1,2,self.size)
 
-#TODO: change everything into calculations in IDX space...
 class precomputed_maze_individual:
   def __init__(self,domain):
    self.domain = domain
@@ -418,98 +443,10 @@ class precomputed_maze_individual:
 
 class precomputed_domain_interface():
  def __init__(self,path="logs/storage.dat"):
-   self.precompute = precomputed_maze_domain(path)
+   self.precompute = precomputed_maze_domain(path,storage_directory="./logs")
    self.generator = lambda:precomputed_maze_individual(self.precompute)
    self.get_behavior = lambda x:x.behavior
    self.get_fitness = lambda x:x.fitness 
-
-MAX_ARCHIVE_SIZE = 1000
-
-class search:
- def __init__(self,domain,pop_size=500,novelty=False,tourn_size=2,elites=1,evolvability=False):
-  self.evo = 0
-  self.epoch_count = 0
-  self.domain = domain
-  self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
-  self.pop_size = pop_size
-  self.tourn_size = tourn_size 
-  self.elites = elites
-  
-  self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
-  self.archive_size = 0 
-  self.archive_ptr = 0
-
-  self.map_evolvability = self.domain.map_evolvability
-  self.map_fitness = lambda x,y:self.domain.map_fitness(x)
-
-  if evolvability:
-   self.map_fitness = lambda x,y:self.domain.map_evolvability(x,ks=4) 
-
-  if novelty:
-   self.map_fitness = lambda x,y:self.domain.map_novelty(x,y)
-
-  self.map_gt_fitness = lambda x,y:self.domain.map_fitness(x)
-
-  self.mutation_rate = 0.5
-  self.best_gt = -1e10
-
-  self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size])
-  self.evolvability = self.map_evolvability(self.population)
-
- def select(self,pop):
-  elites=self.elites
-  champ_idx = np.argmax(self.fitness)
-  newpop = []
-
-  #elitism
-  for _ in xrange(elites):
-   newpop.append(self.domain.clone(pop[champ_idx]))
-  
-  tourn_size = self.tourn_size
-  #simple tournament selection n=2
-  for _ in xrange(self.pop_size-elites):
-   offs = np.random.randint(0,self.pop_size,tourn_size)
-   fits = self.fitness[offs]
-
-   off = offs[np.argmax(fits)]
-   child = self.domain.clone(pop[off])
-
-   if random.random()<self.mutation_rate:
-    child = self.domain.mutate(child) 
-
-   newpop.append(child)
-
-  return newpop
-
- def epoch(self):
-  self.epoch_count+=1
-  new_population = self.select(self.population)
-
-  for _ in xrange(1):
-   if self.archive_ptr>=MAX_ARCHIVE_SIZE:
-    self.archive_ptr = self.archive_ptr % MAX_ARCHIVE_SIZE
-   self.archive[self.archive_ptr] = self.domain.map_behavior([random.choice(self.population)])[0]
-
-   if self.archive_size<MAX_ARCHIVE_SIZE:
-    self.archive_size+=1
-
-   self.archive_ptr+=1
-   
-  self.population = new_population
-  self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size]) 
-  self.gt_fitness = self.map_gt_fitness(self.population,None)
-  self.evolvability = self.map_evolvability(self.population)
-  self.solved = self.domain.map_solution(self.population)
-  if (self.solved.sum()>0):
-   champ = np.argmax(self.solved)
-   print self.gt_fitness[np.argmax(self.solved)]
-   pdb.set_trace()
-   return True 
-
-  print self.evolvability.max(),self.evolvability.mean(),self.evolvability.min() 
-  if self.best_gt < self.gt_fitness.max():
-   self.best_gt = self.gt_fitness.max()
-   print self.epoch_count,self.best_gt
 
 def set_seeds(x):
  random.seed(x)
@@ -546,19 +483,6 @@ def _everywhere_evolvability_calculate(niche_distance):
   print _,evo.min()
  return evo/float(len(niche_distance))
 
-"""
-@jit(nopython=True)
-def _kstep_evolvability_calculate(niche_distance,k):
- sz = niche_distance[0].shape[0]
- evo = np.zeros(sz,dtype=np.uint16)
- for x in xrange(sz):
-  if x%100000==0:
-   print x
-  evolvability_distribution(x,niche_distance,evo_distribution)
-  evo[x] = (evo_distribution<=k).sum()
- return evo
-"""
-
 #testing efficiency of calculating evolvability distribution
 def stress_test_evo_dist(amt,niche_distance,niches):
  global evo_distribution
@@ -576,34 +500,20 @@ def stress_test_evo_dist(amt,niche_distance,niches):
  print after-before
 
 
+
 if __name__=='__main__': 
  #set_seeds(1003)
+
  domain_total = precomputed_maze_domain("medium",storage_directory="logs/",mmap=True)
- niches = np.unique( domain_total.data["behaviorhash"])
- #load_all_niche_distances(domain_total)
 
- for k in range(1,9):
-  domain_total.kstep_evolvability_calculate(k)
- domain_total.everywhere_evolvability_calculate()
+ compute_evolvability=False
+ if compute_evolvability:
+  for k in range(1,9):
+   domain_total.kstep_evolvability_calculate(k)
+  domain_total.everywhere_evolvability_calculate()
 
- """
- for k in range(1,19):
-  print "STEP %d"%k
-  domain_total.kstep_evolvability_calculate(k)
-  del domain_total.evo[k]
- """
+ search = search(domain_total,novelty=False,tourn_size=2,pop_size=250,evolvability=False)
 
- """ 
- before = time.time()
- _do_nstep_evo(0,100000,domain_total.data["behaviorhash"],3)
- after = time.time()
- print after-before
-
- print domain_total.data["evolvability"][idx]
- fasd
- """
-
- search = search(domain_total,novelty=False,tourn_size=10,evolvability=False)
  for _ in xrange(1000):
   if _%100==0:
    print _*search.pop_size
