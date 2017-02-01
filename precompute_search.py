@@ -1,6 +1,9 @@
 from precomputed_domain import *
+
+#global display flag
 disp=False
 
+#display depends upon pygame
 if disp:
  SZX=SZY=400
  import pygame
@@ -13,7 +16,7 @@ if disp:
  background = background.convert()
  background.fill((250, 250, 250,255))
 
-
+#redner function
 def render(search,domain):
  global screen,background
  pop = search.population
@@ -44,14 +47,9 @@ def render(search,domain):
 
  pygame.display.flip()
 
-
-
-
+#general search class 
 MAX_ARCHIVE_SIZE = 1000
 class search:
-
- def fitness_plus_diversity(self,fit_func,population):
-    return diversity_score(population)+fit_func(population)
 
  def __init__(self,domain,pop_size=500,novelty=False,tourn_size=2,elites=1,evolvability=False,drift=0.0,fuss=False,mutation_rate=0.8):
   self.epoch_count = 0
@@ -61,11 +59,12 @@ class search:
   self.tourn_size = tourn_size 
   self.elites = elites
   
-  self.novelty = novelty
   self.fuss = fuss
 
   self.evals=0
   self.solved=False
+
+  self.novelty = novelty
   self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
   self.archive_size = 0 
   self.archive_ptr = 0
@@ -73,7 +72,6 @@ class search:
   self.map_evolvability = self.domain.map_evolvability
   
   self.map_fitness = lambda x,y:self.domain.map_fitness(x)
-  #self.map_fitness = lambda x,y:self.fitness_plus_diversity(self.domain.map_fitness,x)
 
   if evolvability:
    self.map_fitness = lambda x,y:self.domain.map_evolvability(x,ks=4) 

@@ -212,9 +212,6 @@ class precomputed_maze_domain:
     discarded += digit*(3**it)
     leading/=3 
 
-   #print self.from_idx(idx)
-   #for n_idx in n:
-   # print self.from_idx(n_idx) 
    return n
 
   def gather_neighbors(self,olist):
@@ -240,7 +237,6 @@ class precomputed_maze_domain:
     np.save(solution_file,self.niche_distance[niche])
     del self.niche_distance[niche]
    
-
     self.niche_distance[niche] = np.load(solution_file,mmap_mode=mmap)
    else:
     print "cached..."
@@ -504,9 +500,10 @@ def stress_test_evo_dist(amt,niche_distance,niches):
 if __name__=='__main__': 
  #set_seeds(1003)
 
- domain_total = precomputed_maze_domain("medium",storage_directory="logs/",mmap=True)
+ maze="hard"
+ domain_total = precomputed_maze_domain(maze,storage_directory="logs/",mmap=True)
 
- compute_evolvability=False
+ compute_evolvability=True
  if compute_evolvability:
   for k in range(1,9):
    domain_total.kstep_evolvability_calculate(k)
