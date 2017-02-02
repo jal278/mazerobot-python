@@ -51,14 +51,15 @@ def render(search,domain):
 MAX_ARCHIVE_SIZE = 1000
 class search:
 
- def __init__(self,domain,pop_size=500,novelty=False,tourn_size=2,elites=1,evolvability=False,drift=0.0,fuss=False,mutation_rate=0.8):
+ def __init__(self,domain,pop_size=250,novelty=False,tourn_size=2,elites=1,evolvability=False,drift=0.0,fuss=False,mutation_rate=0.8,diversity=0.0):
   self.epoch_count = 0
   self.domain = domain
   self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
   self.pop_size = pop_size
   self.tourn_size = tourn_size 
   self.elites = elites
-  
+  self.diversity_pressure = diversity
+
   self.fuss = fuss
 
   self.evals=0
@@ -102,6 +103,12 @@ class search:
 
      return self.domain.clone(pop[closest_idx])
 
+ def select_diverse(self,pop):
+   offs = np.random.randint(0,self.pop_size,4)
+   dist = distance_matrix(np.take(pop,offs)).sum(0)
+   off = offs[np.argmax(dist)]
+   return self.domain.clone(pop[off])
+
  def select_tourn(self,pop):
    offs = np.random.randint(0,self.pop_size,self.tourn_size)
    fits = self.fitness[offs]
@@ -123,8 +130,12 @@ class search:
   self.min_fit = self.fitness.min()
   self.max_fit = self.fitness.max()
 
+  diversity_pressure=self.diversity_pressure 
   for _ in xrange(self.pop_size-elites):
-   child = self.selection_mechanism(pop)
+   if random.random()<diversity_pressure:
+    child = self.select_diverse(pop)
+   else:
+    child = self.selection_mechanism(pop)
 
    if random.random()<self.mutation_rate:
     child = self.domain.mutate(child) 
@@ -167,7 +178,7 @@ class search:
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
 
-def repeat_search(generator,times,seeds=None,gens=500):
+def repeat_search(generator,times,seeds=None,gens=250):
  solved=[]
  evals=[]
  if seeds==None:
@@ -196,28 +207,32 @@ if __name__=='__main__':
 
  domain_total = precomputed_maze_domain("hard",storage_directory="logs/",mmap=True)
 
- nov = lambda : search(domain_total,novelty=True,tourn_size=2,pop_size=500,drift=0.25)
- fit_loose = lambda : search(domain_total,novelty=False,tourn_size=3,pop_size=500,drift=0.85,elites=5) 
- fit = lambda : search(domain_total,novelty=False,tourn_size=3,pop_size=500)
+ nov = lambda : search(domain_total,novelty=True,tourn_size=2,pop_size=500,drift=0.0) #was 0.25
+ fit_loose = lambda : search(domain_total,novelty=False,tourn_size=3,pop_size=250,drift=0.75,elites=5) #was 0.85
+ fit = lambda : search(domain_total,novelty=False,tourn_size=2,pop_size=500)
  rnd = lambda : search(domain_total,tourn_size=3,pop_size=500,drift=1.0,elites=0)
  import time
 
- methods = {'nov':nov,'fit':fit,'fit_loose':fit_loose,'rnd':rnd}
- res = {}
+  
+ #print repeat_search(fit_loose,50)
+ #afsd
+ if True:
+  methods = {'nov':nov,'fit':fit,'rnd':rnd}
+  res = {}
  
- before=time.time()
- for method in methods:
-  #print repeat_search(rnd,5,range(1,6))
-  res[method] = repeat_search(methods[method],50)
- after=time.time()
- pdb.set_trace()
- import pickle
- outfile = open("hardresults.pkl","w")
- pickle.dump(res,outfile)
- fasd
+  before=time.time()
+  for method in methods:
+   #print repeat_search(rnd,5,range(1,6))
+   res[method] = repeat_search(methods[method],100)
+  after=time.time()
+  pdb.set_trace()
+  import pickle
+  outfile = open("medresults.pkl","w")
+  pickle.dump(res,outfile)
+  fasd
 
  #set_seeds(1003)
- search = search(domain_total,novelty=False,tourn_size=3,pop_size=500,drift=0.8,elites=5)
+ search = search(domain_total,novelty=False,tourn_size=2,pop_size=500,drift=0.0,diversity=0.75,elites=5)
  #search = search(domain_total,novelty=True,tourn_size=2,pop_size=250,drift=0.25,evolvability=False)
   
  for _ in xrange(1000):
@@ -225,9 +240,9 @@ if __name__=='__main__':
    print _*search.pop_size
   sol = search.epoch()
   if sol:
-   print "solved" 
-   break
+    print "solved" 
+    break
   if(disp):
-   render(search,domain_total)
+    render(search,domain_total)
  print search.evals
 

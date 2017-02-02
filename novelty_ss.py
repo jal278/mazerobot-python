@@ -7,7 +7,7 @@ import precomputed_domain
 import entropy
 
 novelty=False
-disp=True
+disp=False
 SZX=SZY=400
 NS_K = 10
 ELITE = 3
@@ -143,6 +143,8 @@ def draw_maze(walls,agent,sz=64,fname=None):
 
  return numpy.array(maze)
 
+def do_search(psize,maxevals):
+
 if(__name__=='__main__'):
  evo_fnc = calc_evolvability_entropy
  #initialize maze stuff with "medium maze" 
@@ -156,7 +158,7 @@ if(__name__=='__main__'):
 
  behavior_density=defaultdict(int)
  population=[]
- psize=250
+ psize=500
 
  for k in range(psize):
   robot=domain.generator()
@@ -173,7 +175,7 @@ if(__name__=='__main__'):
 
  evals=psize
 
- max_evals=1000000
+ max_evals=500*500 #1000000
 
  while evals < max_evals and not solved:
   #population.sort(key=lambda x:x.fitness,reverse=True)
@@ -229,6 +231,7 @@ if(__name__=='__main__'):
 
  #calculate evolvability
  print child.solution()
+ asfd
  print "evolvability:", evo_fnc(child,1000)
 
  """
