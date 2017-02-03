@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pdb
 import os.path
+import pickle
 from scipy.spatial import cKDTree as kd
 from numba import jit,jitclass
 
@@ -171,6 +172,32 @@ def _get_data(descriptor,data):
    idx=_to_idx(descriptor)
    return data[idx] 
 
+class metrics:
+  def __init__(self,domain):
+      self.domain = domain
+      self.rarity()
+
+  def rarity(self):
+   rarity_file = "rarity_%s.pkl"%self.domain.maze
+   print rarity_file
+   if os.path.isfile(rarity_file):
+    print "rarity cached..."
+    ifile=open(rarity_file)
+    rarity=pickle.load(ifile)
+   else:
+    print "calculting rarity..."
+    rarity={}
+    for niche in np.unique(self.domain.data["behaviorhash"]):
+     rarity[niche]=(self.domain.data["behaviorhash"]==niche).sum()
+     print niche,rarity[niche]
+    ofile = open(rarity_file,"w")
+    pickle.dump(rarity,ofile)
+   self.rarity=rarity
+   return rarity
+
+  def rarity_score(self,ind):
+   return -self.rarity[self.domain.data["behaviorhash"][self.domain.to_idx(ind)]]  
+
 class precomputed_maze_domain:
   def __init__(self,maze="hard",storage_directory="/home/joel/evodata/logs",mmap=False):
     self.maze= maze
@@ -181,6 +208,7 @@ class precomputed_maze_domain:
     self.solution_distance_calculate()
     self.niche_distance = {}
     self.evo = {}
+    self.evo_everywhere=None
     self.mmap=mmap
 
     if maze=='hard':
@@ -249,10 +277,8 @@ class precomputed_maze_domain:
     self.niche_distance_calculate(niche)
 
   def kstep_evolvability_calculate(self,k):
-   global evo_distribution
-   niches = np.unique( self.data["behaviorhash"])
-  
-   evo_distribution = np.zeros(len(niches))
+   if k in self.evo:
+       return
 
    evo_file = self.fname+".evo%d.npy"%k
    cached_solutions = os.path.isfile(evo_file) 
@@ -269,9 +295,8 @@ class precomputed_maze_domain:
     self.evo[k]= np.load(evo_file)
 
   def everywhere_evolvability_calculate(self):
-   global evo_distribution
-   niches = np.unique( self.data["behaviorhash"])
-   evo_distribution = np.zeros(len(niches))
+   if self.evo_everywhere!=None:
+       return
 
    evo_file = self.fname+".evoall.npy"
    cached_solutions = os.path.isfile(evo_file) 
@@ -349,7 +374,7 @@ class precomputed_maze_domain:
    descriptor[idx] = np.random.randint(-1,2)
    return descriptor 
 
-  def evolvability_ev(self,descriptor):
+  def evolvability_everywhere(self,descriptor):
    idx = _to_idx(descriptor)
    return -self.evo_everywhere[idx]
 

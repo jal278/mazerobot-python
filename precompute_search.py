@@ -1,5 +1,5 @@
 from precomputed_domain import *
-
+import math
 #global display flag
 disp=False
 
@@ -16,7 +16,7 @@ if disp:
  background = background.convert()
  background.fill((250, 250, 250,255))
 
-#redner function
+#render function
 def render(search,domain):
  global screen,background
  pop = search.population
@@ -51,7 +51,8 @@ def render(search,domain):
 MAX_ARCHIVE_SIZE = 1000
 class search:
 
- def __init__(self,domain,pop_size=250,novelty=False,tourn_size=2,elites=1,evolvability=False,drift=0.0,fuss=False,mutation_rate=0.8,diversity=0.0):
+ def __init__(self,domain,pop_size=250,tourn_size=2,elites=1,drift=0.0,fuss=False,mutation_rate=0.8,diversity=0.0,search_mode="fitness",log_evolvability=False):
+
   self.epoch_count = 0
   self.domain = domain
   self.population = [self.domain.generate_random() for _ in xrange(pop_size)]
@@ -59,25 +60,55 @@ class search:
   self.tourn_size = tourn_size 
   self.elites = elites
   self.diversity_pressure = diversity
+  self.log_evolvability = log_evolvability
 
-  self.fuss = fuss
+  self.rarity=False
+  self.novelty=False
+  self.fuss=False
+  self.evolvability=False
+  self.evo_everywhere=False
+  self.evo_steps=1
 
+  self.metrics = metrics(domain)
+
+  if search_mode=='fitness':
+   pass
+  if search_mode=='rarity':
+   self.rarity=True
+  if search_mode=='novelty':
+   self.novelty=True
+  if search_mode=='fuss':
+   self.fuss=True
+  if search_mode.count('evolvability')>0:
+   self.evolvability=True
+   if search_mode.count('everywhere')>0:
+       self.evo_everywhere=True
+   else:
+       self.evo_steps=int(search_mode[-1])
+
+  #evaluations spent and solved flag
   self.evals=0
   self.solved=False
 
-  self.novelty = novelty
+  #novelty search specific
   self.archive = np.zeros((MAX_ARCHIVE_SIZE,domain.behavior_size))
   self.archive_size = 0 
   self.archive_ptr = 0
 
-  self.map_evolvability = self.domain.map_evolvability
-  
+  self.map_evolvability = lambda x:self.map_general(self.domain.evolvability_everywhere,x)
   self.map_fitness = lambda x,y:self.domain.map_fitness(x)
 
-  if evolvability:
-   self.map_fitness = lambda x,y:self.domain.map_evolvability(x,ks=4) 
+  if self.evolvability:
+   if self.evo_everywhere:
+       self.domain.everywhere_evolvability_calculate()
+       self.map_fitness = lambda x,y:self.map_general(self.domain.evolvability_everywhere,x)
+   else:
+       self.domain.kstep_evolvability_calculate(self.evo_steps)
+       self.map_fitness = lambda x,y:self.map_general(lambda ind:self.domain.evolvability_ks(ind,k=self.evo_steps),x)
 
-  if novelty:
+  if self.rarity:
+   self.map_fitness = lambda x,y:self.map_general(self.metrics.rarity_score,x)
+  if self.novelty:
    self.map_fitness = lambda x,y:self.domain.map_novelty(x,y)
 
   self.map_gt_fitness = lambda x,y:self.domain.map_fitness(x)
@@ -92,7 +123,12 @@ class search:
       self.selection_mechanism = lambda x:self.select_tourn(x)
 
   self.fitness = self.map_fitness(self.population,self.archive[:self.archive_size])
-  self.evolvability = self.map_evolvability(self.population)
+  if log_evolvability:
+   self.evolvability = self.map_evolvability(self.population)
+
+
+ def map_general(self,measure,population):
+      return np.array([measure(x) for x in population])
 
  def select_fuss(self,pop):
      rnd_fit = random.uniform(self.min_fit,self.max_fit)
@@ -144,6 +180,33 @@ class search:
 
   return newpop
 
+ def hillclimb(self,eval_budget,shadow=False):
+  champ = self.population[0]
+  champ_fitness = self.map_fitness([champ],None)[0]
+  orig_fitness = champ_fitness
+  selections = 0
+  solved=False
+  for _ in xrange(eval_budget):
+   offspring = self.domain.clone(champ)
+   offspring = self.domain.mutate(offspring)
+   if random.random()<0.25:
+      offspring = self.domain.mutate(offspring)
+
+   offspring_fitness = self.map_fitness([offspring],None)[0]
+   solution = self.domain.map_solution([offspring])[0]
+   if shadow:
+       champ=offspring
+
+   if solution:
+       print "solved"
+       solved=True
+   if offspring_fitness > champ_fitness:
+       champ_fitness = offspring_fitness
+       champ = offspring
+       print _,champ_fitness
+       selections+=1
+  return orig_fitness,champ_fitness,selections,solved
+  
  def epoch(self):
   self.epoch_count+=1
   self.evals+=self.pop_size
@@ -204,20 +267,28 @@ def repeat_search(generator,times,seeds=None,gens=250):
  return solved,evals
 
 if __name__=='__main__': 
+ maze = 'hard'
+ domain = precomputed_maze_domain(maze,storage_directory="logs/",mmap=True)
 
- domain_total = precomputed_maze_domain("hard",storage_directory="logs/",mmap=True)
+ rarity = lambda : search(domain,search_mode="rarity",pop_size=500)
+ evo1 = lambda : search(domain,search_mode="evolvability1",pop_size=500)
+ evo2 = lambda : search(domain,search_mode="evolvability2",pop_size=500)
+ evo3 = lambda : search(domain,search_mode="evolvability3",pop_size=500)
+ evo4 = lambda : search(domain,search_mode="evolvability4",pop_size=500)
+ evo_ev = lambda : search(domain,search_mode='evolvability_everywhere',pop_size=500)
 
- nov = lambda : search(domain_total,novelty=True,tourn_size=2,pop_size=500,drift=0.0) #was 0.25
- fit_loose = lambda : search(domain_total,novelty=False,tourn_size=3,pop_size=250,drift=0.75,elites=5) #was 0.85
- fit = lambda : search(domain_total,novelty=False,tourn_size=2,pop_size=500)
- rnd = lambda : search(domain_total,tourn_size=3,pop_size=500,drift=1.0,elites=0)
+ nov = lambda : search(domain,novelty=True,tourn_size=2,pop_size=500,drift=0.0) #was 0.25
+ fit_loose = lambda : search(domain,novelty=False,tourn_size=3,pop_size=250,drift=0.75,elites=5) #was 0.85
+ fit = lambda : search(domain,novelty=False,tourn_size=2,pop_size=500)
+ rnd = lambda : search(domain,tourn_size=3,pop_size=500,drift=1.0,elites=0)
  import time
 
   
  #print repeat_search(fit_loose,50)
  #afsd
- if True:
-  methods = {'nov':nov,'fit':fit,'rnd':rnd}
+ if False:
+  #methods = {'nov':nov,'fit':fit,'rnd':rnd}
+  methods = {'rar':rarity,'evo_ev':evo_ev,'evo1':evo1,'evo2':evo2,'evo3':evo3,'evo4':evo4}
   res = {}
  
   before=time.time()
@@ -227,13 +298,33 @@ if __name__=='__main__':
   after=time.time()
   pdb.set_trace()
   import pickle
-  outfile = open("medresults.pkl","w")
+  outfile = open("%sresults.pkl"%maze,"w")
   pickle.dump(res,outfile)
   fasd
 
  #set_seeds(1003)
- search = search(domain_total,novelty=False,tourn_size=2,pop_size=500,drift=0.0,diversity=0.75,elites=5)
- #search = search(domain_total,novelty=True,tourn_size=2,pop_size=250,drift=0.25,evolvability=False)
+ #search = search(domain,novelty=False,tourn_size=2,pop_size=500,drift=0.0,diversity=0.75,elites=5)
+ #search = rarity()
+ #search = search(domain,search_mode="evolvability1",pop_size=500)
+ results=[]
+ results_shadow=[]
+ for x in range(20):
+  s = rarity()
+  results.append(  s.hillclimb(5000,shadow=False) )
+  s = rarity()
+  results_shadow.append(  s.hillclimb(5000,shadow=True) )
+  orig,final,selections,solved=results[-1]
+
+ orig,final,selections,solved=zip(*results)
+
+ orig = np.array(orig).astype(float)
+ final = np.array(final).astype(float)
+ selections = np.array(selections).astype(float)
+ print solved.count(True)
+
+ pdb.set_trace()
+ asdf
+ #search = search(domain,novelty=True,tourn_size=2,pop_size=250,drift=0.25,evolvability=False)
   
  for _ in xrange(1000):
   if _%100==0:
@@ -243,6 +334,6 @@ if __name__=='__main__':
     print "solved" 
     break
   if(disp):
-    render(search,domain_total)
+    render(search,domain)
  print search.evals
 
