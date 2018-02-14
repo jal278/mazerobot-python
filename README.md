@@ -1,5 +1,5 @@
-mazerobot-python
-================
+Precomputed domains Evolutionary Framework
+==========================================
 
 Python wrapper for the maze navigation evolutionary robotics domain common across many of my publications.
 
@@ -12,6 +12,10 @@ Before you build, the following dependencies should be installed:
 * python2.x developer libraries and includes (to build python wrapper)
 * wxWidgets developer libraries and includes (to build visualizer)
 
+Python dependencies:
+* Numpy
+* Numba (http://numba.pydata.org/)
+* Scipy 
 
 After these dependencies are installed, building the program should (ideally) be as simple as executing scons in the working directory (note: only tested on Linux but I don't believe anything is linux-specific).
 

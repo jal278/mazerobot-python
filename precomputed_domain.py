@@ -7,6 +7,7 @@ import pickle
 from scipy.spatial import cKDTree as kd
 from numba import jit,jitclass
 
+#kdtree calculation for fast novelty search evaluation
 @jit
 def evalNovKDTree(data,archive):
   tot_data = np.vstack( (data,archive) )
@@ -18,10 +19,12 @@ def evalNovKDTree(data,archive):
 
   return nov
  
+#evaluate an individual using a precalculated kdtree
 def eval_ind_k(tree,pt,NS_K=20):
  nearest,indexes=tree.query(pt,NS_K)
  return sum(nearest)
 
+#optimized neighbor-gathering function
 @jit
 def _get_neighbors(idx,size=16):
    n = np.zeros(3*size,dtype=np.int64)
@@ -96,20 +99,6 @@ def distance(g1,g2):
     return dist
 
 @jit
-def distance_matrix(genomes):
-    sz = len(genomes)
-    matrix = np.zeros((sz,sz))
-    for i in xrange(sz):
-        for j in xrange(sz):
-          matrix[i,j]=distance(genomes[i],genomes[j])
-    return matrix
-
-def diversity_score(population):
-     matrix = distance_matrix(population)
-     score = matrix.mean(0)
-     return score
-
-@jit
 def nstep_evo(idx,behaviorhash,n):
    onehot = np.zeros_like(behaviorhash)
    onehot[idx]=1
@@ -172,6 +161,7 @@ def _get_data(descriptor,data):
    idx=_to_idx(descriptor)
    return data[idx] 
 
+#class to hold metrics
 class metrics:
   def __init__(self,domain):
       self.domain = domain
@@ -199,7 +189,7 @@ class metrics:
    return -self.rarity[self.domain.data["behaviorhash"][self.domain.to_idx(ind)]]  
 
 class precomputed_maze_domain:
-  def __init__(self,maze="hard",storage_directory="/home/joel/evodata/logs",mmap=False):
+  def __init__(self,maze="hard",storage_directory="~/evodata/logs",mmap=False):
     self.maze= maze
     self.storage_directory = storage_directory
     self.data = self.read_in( ("%s/storage_"%storage_directory)+maze+".dat" )
@@ -411,6 +401,10 @@ class precomputed_maze_domain:
     y=self.data['y'][idxes].astype(np.float32)
     return -((x-self.goal[0])**2 + (y-self.goal[1])**2) #np.array([self.fitness(x) for x in population])
 
+  def map_behaviorhash(self,population):
+   idxes = [self.to_idx(x) for x in population]
+   return self.data['behaviorhash'][idxes]
+
   def map_behavior(self,population):
    idxes = [self.to_idx(x) for x in population]
    x=self.data['x'][idxes]
@@ -432,6 +426,8 @@ class precomputed_maze_domain:
 
   def generate_random(self):
    return np.random.randint(-1,2,self.size)
+
+
 
 class precomputed_maze_individual:
   def __init__(self,domain):

@@ -1,6 +1,8 @@
 from precomputed_domain import *
 import math
+
 #global display flag
+#turn on to visualize search
 disp=False
 
 #display depends upon pygame
@@ -62,6 +64,8 @@ class search:
   self.diversity_pressure = diversity
   self.log_evolvability = log_evolvability
 
+  self.behavior_count=np.zeros(10000) #for counting how many behaviors have been encountered
+  
   self.rarity=False
   self.novelty=False
   self.fuss=False
@@ -76,7 +80,7 @@ class search:
   if search_mode=='rarity':
    self.rarity=True
   if search_mode=='novelty':
-   self.novelty=True
+    self.novelty=True
   if search_mode=='fuss':
    self.fuss=True
   if search_mode.count('evolvability')>0:
@@ -189,8 +193,6 @@ class search:
   for _ in xrange(eval_budget):
    offspring = self.domain.clone(champ)
    offspring = self.domain.mutate(offspring)
-   if random.random()<0.25:
-      offspring = self.domain.mutate(offspring)
 
    offspring_fitness = self.map_fitness([offspring],None)[0]
    solution = self.domain.map_solution([offspring])[0]
@@ -200,14 +202,16 @@ class search:
    if solution:
        print "solved"
        solved=True
+
    if offspring_fitness > champ_fitness:
        champ_fitness = offspring_fitness
        champ = offspring
        print _,champ_fitness
        selections+=1
+
   return orig_fitness,champ_fitness,selections,solved
   
- def epoch(self):
+ def epoch(self,count_behaviors=True):
   self.epoch_count+=1
   self.evals+=self.pop_size
   new_population = self.select(self.population)
@@ -228,9 +232,13 @@ class search:
   #self.evolvability = self.map_evolvability(self.population)
   self.solutions = self.domain.map_solution(self.population)
 
+  if count_behaviors:
+   self.behaviorhash = self.domain.map_behaviorhash(self.population)
+   np.add.at(self.behavior_count,self.behaviorhash,1)
+
   if (self.solutions.sum()>0):
    champ = np.argmax(self.solutions)
-   print self.gt_fitness[np.argmax(self.solutions)]
+   #print self.gt_fitness[np.argmax(self.solutions)]
    self.solved=True
    return True 
 
@@ -240,6 +248,90 @@ class search:
   if self.best_gt < self.gt_fitness.max():
    self.best_gt = self.gt_fitness.max()
    print self.epoch_count,self.best_gt
+
+def repeat_search_rarity(generator,times,seeds=None,gens=250):
+ solved=[]
+ evals=[]
+ data=np.zeros((times,gens))
+ if seeds==None:
+     seeds=range(1,times+1)
+ for x in range(times):
+  set_seeds(seeds[x])
+  search=generator()
+
+  for _ in xrange(gens):
+   if _%100==0:
+    print _*search.pop_size
+   sol = search.epoch()
+   #if sol:
+   # print "solved" 
+   # break
+   rarity= np.array(search.map_general(search.metrics.rarity_score,search.population))
+   data[x,_] = rarity.max() 
+  print search.solved
+  if search.solved:
+      solved.append(True)
+      evals.append(search.evals)
+  else:
+      solved.append(False)
+      evals.append(-1)
+ return data
+
+def repeat_search_evolvability(generator,times,seeds=None,gens=250):
+ solved=[]
+ evals=[]
+ data=np.zeros((times,gens))
+ if seeds==None:
+     seeds=range(1,times+1)
+ for x in range(times):
+  set_seeds(seeds[x])
+  search=generator()
+
+  for _ in xrange(gens):
+   if _%100==0:
+    print _*search.pop_size
+   sol = search.epoch()
+   #if sol:
+   # print "solved" 
+   # break
+   evolvability = np.array(search.map_general(lambda ind:search.domain.evolvability_everywhere(ind),search.population))
+   data[x,_] = evolvability.max() 
+  print search.solved
+  if search.solved:
+      solved.append(True)
+      evals.append(search.evals)
+  else:
+      solved.append(False)
+      evals.append(-1)
+ return data
+
+
+def repeat_search_count_behaviors(generator,times,seeds=None,gens=250):
+ solved=[]
+ evals=[]
+ total_behaviors=np.zeros((times,gens))
+ if seeds==None:
+     seeds=range(1,times+1)
+ for x in range(times):
+  set_seeds(seeds[x])
+  search=generator()
+
+  for _ in xrange(gens):
+   if _%100==0:
+    print _*search.pop_size
+   sol = search.epoch()
+   #if sol:
+   # print "solved" 
+   # break
+   total_behaviors[x,_] = (search.behavior_count>0).sum() 
+  print search.solved
+  if search.solved:
+      solved.append(True)
+      evals.append(search.evals)
+  else:
+      solved.append(False)
+      evals.append(-1)
+ return total_behaviors
 
 def repeat_search(generator,times,seeds=None,gens=250):
  solved=[]
@@ -267,65 +359,22 @@ def repeat_search(generator,times,seeds=None,gens=250):
  return solved,evals
 
 if __name__=='__main__': 
- maze = 'hard'
+ maze = 'medium'
  domain = precomputed_maze_domain(maze,storage_directory="logs/",mmap=True)
 
- rarity = lambda : search(domain,search_mode="rarity",pop_size=500)
+ rarity = lambda : search(domain,search_mode="rarity",pop_size=500,tourn_size=2)
  evo1 = lambda : search(domain,search_mode="evolvability1",pop_size=500)
  evo2 = lambda : search(domain,search_mode="evolvability2",pop_size=500)
  evo3 = lambda : search(domain,search_mode="evolvability3",pop_size=500)
  evo4 = lambda : search(domain,search_mode="evolvability4",pop_size=500)
  evo_ev = lambda : search(domain,search_mode='evolvability_everywhere',pop_size=500)
 
- nov = lambda : search(domain,novelty=True,tourn_size=2,pop_size=500,drift=0.0) #was 0.25
- fit_loose = lambda : search(domain,novelty=False,tourn_size=3,pop_size=250,drift=0.75,elites=5) #was 0.85
- fit = lambda : search(domain,novelty=False,tourn_size=2,pop_size=500)
+ nov = lambda : search(domain,search_mode="novelty",tourn_size=2,pop_size=500) #was 0.25
+ fit = lambda : search(domain,tourn_size=2,pop_size=500)
  rnd = lambda : search(domain,tourn_size=3,pop_size=500,drift=1.0,elites=0)
- import time
-
-  
- #print repeat_search(fit_loose,50)
- #afsd
- if False:
-  #methods = {'nov':nov,'fit':fit,'rnd':rnd}
-  methods = {'rar':rarity,'evo_ev':evo_ev,'evo1':evo1,'evo2':evo2,'evo3':evo3,'evo4':evo4}
-  res = {}
  
-  before=time.time()
-  for method in methods:
-   #print repeat_search(rnd,5,range(1,6))
-   res[method] = repeat_search(methods[method],100)
-  after=time.time()
-  pdb.set_trace()
-  import pickle
-  outfile = open("%sresults.pkl"%maze,"w")
-  pickle.dump(res,outfile)
-  fasd
+ search = rarity()
 
- #set_seeds(1003)
- #search = search(domain,novelty=False,tourn_size=2,pop_size=500,drift=0.0,diversity=0.75,elites=5)
- #search = rarity()
- #search = search(domain,search_mode="evolvability1",pop_size=500)
- results=[]
- results_shadow=[]
- for x in range(20):
-  s = rarity()
-  results.append(  s.hillclimb(5000,shadow=False) )
-  s = rarity()
-  results_shadow.append(  s.hillclimb(5000,shadow=True) )
-  orig,final,selections,solved=results[-1]
-
- orig,final,selections,solved=zip(*results)
-
- orig = np.array(orig).astype(float)
- final = np.array(final).astype(float)
- selections = np.array(selections).astype(float)
- print solved.count(True)
-
- pdb.set_trace()
- asdf
- #search = search(domain,novelty=True,tourn_size=2,pop_size=250,drift=0.25,evolvability=False)
-  
  for _ in xrange(1000):
   if _%100==0:
    print _*search.pop_size
